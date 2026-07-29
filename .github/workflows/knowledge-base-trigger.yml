@@ -1,0 +1,46 @@
+# ==============================================================================
+# GitHub Actions: knowledge-base → Trigger book-website rebuild
+# ==============================================================================
+#
+# This workflow runs when content is pushed to the knowledge-base repository.
+# It sends a repository_dispatch event to the book-website repository,
+# which triggers its CI/CD pipeline to rebuild and deploy.
+#
+# Required secrets:
+#   BOOK_WEBSITE_PAT — A GitHub Personal Access Token with `repo` scope
+#                      for the book-website repository.
+#
+# Setup:
+#   1. Place this file at: knowledge-base/.github/workflows/trigger-rebuild.yml
+#   2. Create a PAT at: https://github.com/settings/tokens
+#   3. Add it as a secret named BOOK_WEBSITE_PAT in the knowledge-base repo settings.
+#   4. Update the `repo` field below with your actual GitHub username.
+# ==============================================================================
+
+name: Trigger Website Rebuild
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.md'
+      - '**/*.mdx'
+      - '**/*.png'
+      - '**/*.jpg'
+      - '**/*.jpeg'
+      - '**/*.gif'
+      - '**/*.svg'
+
+jobs:
+  trigger:
+    name: Dispatch rebuild event
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send repository_dispatch to book-website
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.BOOK_WEBSITE_PAT }}
+          repository: YOUR_USERNAME/book-website # ← Update with your GitHub username
+          event-type: knowledge-base-updated
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "message": "${{ github.event.head_commit.message }}"}'

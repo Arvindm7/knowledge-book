@@ -1,0 +1,53 @@
+{
+  "name": "knowledge-book",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "generate": "node scripts/generate-content.mjs",
+    "prebuild": "node scripts/generate-content.mjs",
+    "build": "next build",
+    "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind",
+    "start": "next start",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,json,css,md}\"",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.18.1",
+    "mermaid": "^11.16.0",
+    "next": "16.2.10",
+    "next-mdx-remote-client": "^2.1.11",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.6.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "reading-time": "^1.5.0",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-katex": "^7.0.1",
+    "rehype-pretty-code": "^0.14.4",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "shiki": "^4.3.1",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "class-variance-authority": "^0.7.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "lucide-react": "^1.24.0",
+    "pagefind": "^1.5.2",
+    "prettier": "^3.9.5",
+    "tailwindcss": "^4"
+  }
+}
