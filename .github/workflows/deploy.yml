@@ -82,11 +82,13 @@ jobs:
 
       # ---- Pull Vercel project settings ----
       # This is the official Vercel CI/CD approach for CLI v38+.
-      # VERCEL_ORG_ID + VERCEL_PROJECT_ID env vars tell the CLI which project
-      # to use, and --yes runs non-interactively. This writes .vercel/project.json
-      # and .vercel/project.env automatically.
+      # We remove .vercel first because the repo has a committed .vercel/repo.json
+      # which confuses the CLI ("could not retrieve project settings").
+      # With VERCEL_ORG_ID + VERCEL_PROJECT_ID set, vercel pull recreates it cleanly.
       - name: Pull Vercel project settings
-        run: npx -y vercel pull --yes --environment=production
+        run: |
+          rm -rf .vercel
+          npx -y vercel pull --yes --environment=production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
