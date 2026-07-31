@@ -50,6 +50,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.BOOK_WEBSITE_PAT }}
-          repository: YOUR_USERNAME/book-website # ← Change 'YOUR_USERNAME' to your GitHub username/org
+          repository: Arvindm7/knowledge-book
           event-type: knowledge-base-updated
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "message": "${{ github.event.head_commit.message }}"}'

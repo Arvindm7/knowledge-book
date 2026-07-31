@@ -62,7 +62,7 @@ jobs:
           if [ -z "${{ env.KNOWLEDGE_BASE_REPO }}" ]; then
             echo "::error::KNOWLEDGE_BASE_REPO is not configured!"
             echo "Please add KNOWLEDGE_BASE_REPO in your repository Settings > Secrets and variables > Actions > Variables or Secrets."
-            echo "Example: Arvindm7/knowledge-base or Arvindm7/knowledge-book"
+            echo "Example: Arvindm7/knowledge-base"
             exit 1
           fi
           echo "→ Cloning knowledge-base repository: ${{ env.KNOWLEDGE_BASE_REPO }}..."
