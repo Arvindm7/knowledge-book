@@ -80,13 +80,17 @@ jobs:
         env:
           CONTENT_DIR: .content/knowledge-base
 
-      # ---- Pull Vercel project settings ----
-      # Downloads .vercel/project.json so vercel build knows which project to build
-      - name: Pull Vercel project settings
-        run: npx -y vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # ---- Create Vercel project config ----
+      # Write .vercel/project.json directly from secrets so vercel build
+      # can identify the project without needing 'vercel pull'
+      - name: Create Vercel project config
+        run: |
+          mkdir -p .vercel
+          echo '{
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}"
+          }' > .vercel/project.json
+          echo "✓ .vercel/project.json created"
 
       # ---- Build with Vercel CLI ----
       # vercel build creates .vercel/output which is required for --prebuilt deploy
