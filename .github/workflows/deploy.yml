@@ -80,6 +80,12 @@ jobs:
         env:
           CONTENT_DIR: .content/knowledge-base
 
+      # ---- Debug: Verify Vercel token ----
+      - name: Verify Vercel token
+        run: npx -y vercel whoami
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
       # ---- Pull Vercel project settings ----
       # This is the official Vercel CI/CD approach for CLI v38+.
       # We remove .vercel first because the repo has a committed .vercel/repo.json
