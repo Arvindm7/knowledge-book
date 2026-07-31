@@ -80,41 +80,13 @@ jobs:
         env:
           CONTENT_DIR: .content/knowledge-base
 
-      # ---- Create Vercel project config ----
-      # Write .vercel/project.json directly from secrets so vercel build
-      # can identify the project without needing 'vercel pull'
-      - name: Create Vercel project config
-        run: |
-          mkdir -p .vercel
-          echo '{
-            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
-            "orgId": "${{ secrets.VERCEL_ORG_ID }}"
-          }' > .vercel/project.json
-          echo "✓ .vercel/project.json created"
-          cat .vercel/project.json
-
-      # ---- Validate Vercel config ----
-      - name: Validate Vercel project config
-        run: |
-          echo "→ Contents of .vercel/project.json:"
-          cat .vercel/project.json
-          echo ""
-          echo "→ Checking secrets are present (non-empty):"
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "::error::VERCEL_TOKEN is empty!"
-          else
-            echo "✓ VERCEL_TOKEN is set"
-          fi
-          if [ -z "$VERCEL_ORG_ID" ]; then
-            echo "::error::VERCEL_ORG_ID is empty!"
-          else
-            echo "✓ VERCEL_ORG_ID is set"
-          fi
-          if [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::VERCEL_PROJECT_ID is empty!"
-          else
-            echo "✓ VERCEL_PROJECT_ID is set"
-          fi
+      # ---- Pull Vercel project settings ----
+      # This is the official Vercel CI/CD approach for CLI v38+.
+      # VERCEL_ORG_ID + VERCEL_PROJECT_ID env vars tell the CLI which project
+      # to use, and --yes runs non-interactively. This writes .vercel/project.json
+      # and .vercel/project.env automatically.
+      - name: Pull Vercel project settings
+        run: npx -y vercel pull --yes --environment=production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -123,7 +95,7 @@ jobs:
       # ---- Build with Vercel CLI ----
       # vercel build creates .vercel/output which is required for --prebuilt deploy
       - name: Build with Vercel
-        run: npx -y vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: npx -y vercel build --prod
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -133,7 +105,7 @@ jobs:
 
       # ---- Deploy to Vercel ----
       - name: Deploy to Vercel
-        run: npx -y vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: npx -y vercel deploy --prebuilt --prod
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
