@@ -80,18 +80,19 @@ jobs:
         env:
           CONTENT_DIR: .content/knowledge-base
 
-      # ---- Build Next.js ----
-      - name: Build Next.js
-        run: npm run build
+      # ---- Build with Vercel CLI ----
+      # vercel build creates .vercel/output which is required for --prebuilt deploy
+      - name: Build with Vercel
+        run: npx -y vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           NEXT_PUBLIC_KNOWLEDGE_BASE_REPO: ${{ env.KNOWLEDGE_BASE_REPO }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://your-site.vercel.app' }}
 
       # ---- Deploy to Vercel ----
       - name: Deploy to Vercel
-        run: |
-          npx -y vercel deploy --prebuilt --prod \
-            --token ${{ secrets.VERCEL_TOKEN }}
+        run: npx -y vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
