@@ -93,6 +93,33 @@ jobs:
           echo "✓ .vercel/project.json created"
           cat .vercel/project.json
 
+      # ---- Validate Vercel config ----
+      - name: Validate Vercel project config
+        run: |
+          echo "→ Contents of .vercel/project.json:"
+          cat .vercel/project.json
+          echo ""
+          echo "→ Checking secrets are present (non-empty):"
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN is empty!"
+          else
+            echo "✓ VERCEL_TOKEN is set"
+          fi
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "::error::VERCEL_ORG_ID is empty!"
+          else
+            echo "✓ VERCEL_ORG_ID is set"
+          fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_PROJECT_ID is empty!"
+          else
+            echo "✓ VERCEL_PROJECT_ID is set"
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       # ---- Build with Vercel CLI ----
       # vercel build creates .vercel/output which is required for --prebuilt deploy
       - name: Build with Vercel
