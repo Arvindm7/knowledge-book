@@ -80,6 +80,14 @@ jobs:
         env:
           CONTENT_DIR: .content/knowledge-base
 
+      # ---- Pull Vercel project settings ----
+      # Downloads .vercel/project.json so vercel build knows which project to build
+      - name: Pull Vercel project settings
+        run: npx -y vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       # ---- Build with Vercel CLI ----
       # vercel build creates .vercel/output which is required for --prebuilt deploy
       - name: Build with Vercel
