@@ -37,10 +37,19 @@ jobs:
     name: Dispatch rebuild event
     runs-on: ubuntu-latest
     steps:
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.BOOK_WEBSITE_PAT }}" ]; then
+            echo "::error::BOOK_WEBSITE_PAT secret is missing!"
+            echo "Please create a GitHub Personal Access Token (PAT) with 'repo' scope at https://github.com/settings/tokens"
+            echo "and add it as a secret named BOOK_WEBSITE_PAT under Settings > Secrets and variables > Actions in your knowledge-base repository."
+            exit 1
+          fi
+
       - name: Send repository_dispatch to book-website
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.BOOK_WEBSITE_PAT }}
-          repository: YOUR_USERNAME/book-website # ← Update with your GitHub username
+          repository: YOUR_USERNAME/book-website # ← Change 'YOUR_USERNAME' to your GitHub username/org
           event-type: knowledge-base-updated
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "message": "${{ github.event.head_commit.message }}"}'

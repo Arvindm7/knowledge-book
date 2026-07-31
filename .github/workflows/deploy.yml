@@ -33,7 +33,7 @@ on:
   workflow_dispatch: # Manual trigger for debugging
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   KNOWLEDGE_BASE_REPO: ${{ secrets.KNOWLEDGE_BASE_REPO || vars.KNOWLEDGE_BASE_REPO || '' }}
 
 jobs:
@@ -59,7 +59,13 @@ jobs:
       # ---- Clone knowledge-base ----
       - name: Clone knowledge-base repository
         run: |
-          echo "→ Cloning knowledge-base..."
+          if [ -z "${{ env.KNOWLEDGE_BASE_REPO }}" ]; then
+            echo "::error::KNOWLEDGE_BASE_REPO is not configured!"
+            echo "Please add KNOWLEDGE_BASE_REPO in your repository Settings > Secrets and variables > Actions > Variables or Secrets."
+            echo "Example: Arvindm7/knowledge-base or Arvindm7/knowledge-book"
+            exit 1
+          fi
+          echo "→ Cloning knowledge-base repository: ${{ env.KNOWLEDGE_BASE_REPO }}..."
           git clone --depth 1 \
             https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ env.KNOWLEDGE_BASE_REPO }}.git \
             .content/knowledge-base
