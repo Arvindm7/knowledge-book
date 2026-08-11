@@ -1,5 +1,10 @@
-import { notFound } from 'next/navigation';
-import { getDocBySlug, getAllDocSlugs } from '@/services/docs';
+import { notFound, redirect } from 'next/navigation';
+import {
+  getDocBySlug,
+  getAllDocSlugs,
+  getDocsNavigationTree,
+  findFirstPageInDir,
+} from '@/services/docs';
 import { extractHeadings } from '@/lib/mdx';
 import { MdxContent } from '@/components/docs/mdx-content';
 import { ResizableToc } from '@/components/docs/resizable-toc';
@@ -57,6 +62,9 @@ export async function generateMetadata({ params }) {
  * Handles both `/docs` (root index) and `/docs/any/nested/path`.
  * Renders MDX content with full documentation chrome:
  * breadcrumbs, metadata, TOC, pagination.
+ *
+ * If the slug matches a directory with no index page, redirects
+ * to the first child page within that directory.
  */
 export default async function DocPage({ params }) {
   const resolvedParams = await params;
@@ -69,8 +77,17 @@ export default async function DocPage({ params }) {
     // Content source not available — show empty state for root, 404 for sub-pages
   }
 
-  // If no doc found and this is a sub-page, show 404
+  // If no doc found and this is a sub-page, try resolving as a directory
   if (!doc && slug) {
+    try {
+      const navTree = await getDocsNavigationTree();
+      const firstChildSlug = findFirstPageInDir(slug, navTree);
+      if (firstChildSlug) {
+        redirect(`/docs/${firstChildSlug}`);
+      }
+    } catch {
+      // Navigation tree not available — fall through to 404
+    }
     notFound();
   }
 

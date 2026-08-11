@@ -239,6 +239,43 @@ function resolveSlugToPath(slug, tree) {
 }
 
 /**
+ * Resolves a directory slug to the first child page slug.
+ * Used when navigating to a folder that has no index.md — redirects to
+ * the first leaf page within that folder.
+ *
+ * @param {string} slug - The directory slug to resolve.
+ * @param {Array} navTree - The navigation tree from getDocsNavigationTree().
+ * @returns {string | null} First child page slug, or null if not found.
+ */
+export function findFirstPageInDir(slug, navTree) {
+  function findNode(nodes) {
+    for (const node of nodes) {
+      if (node.slug === slug && node.isDirectory) return node;
+      if (node.children?.length > 0) {
+        const found = findNode(node.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  function findFirstLeaf(node) {
+    if (!node.isDirectory) return node.slug;
+    if (node.children?.length > 0) {
+      for (const child of node.children) {
+        const leaf = findFirstLeaf(child);
+        if (leaf) return leaf;
+      }
+    }
+    return null;
+  }
+
+  const dirNode = findNode(navTree);
+  if (!dirNode) return null;
+  return findFirstLeaf(dirNode);
+}
+
+/**
  * Fetches and parses a single documentation page by its URL slug.
  */
 export async function getDocBySlug(slug) {
