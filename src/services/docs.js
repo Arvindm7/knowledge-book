@@ -34,9 +34,16 @@ import { fetchRepoTree, fetchFileContent, fetchFileLastCommit } from './github';
 // Internal Helpers
 // ---------------------------------------------------------------------------
 
+function slugifySegment(segment) {
+  return stripOrderPrefix(segment).replace(/\s+/g, '-').toLowerCase();
+}
+
 function pathToSlug(filePath) {
   return filePath
     .replace(/\.(mdx?|md)$/, '')
+    .split('/')
+    .map(slugifySegment)
+    .join('/')
     .replace(/\/index$/, '')
     .replace(/^index$/, '')
     .replace(/\/readme$/i, '')
@@ -119,7 +126,7 @@ export async function getDocsNavigationTree() {
   for (const dirPath of directories) {
     const parts = dirPath.split('/');
     const name = parts[parts.length - 1];
-    const slug = dirPath.split('/').map(stripOrderPrefix).join('/');
+    const slug = dirPath.split('/').map(slugifySegment).join('/');
 
     nodeMap.set(dirPath, {
       title: nameToTitle(stripOrderPrefix(name)),
@@ -152,7 +159,7 @@ export async function getDocsNavigationTree() {
     const slug = file.path
       .replace(/\.(mdx?|md)$/, '')
       .split('/')
-      .map(stripOrderPrefix)
+      .map(slugifySegment)
       .join('/');
 
     const fileNode = {
@@ -224,7 +231,7 @@ function resolveSlugToPath(slug, tree) {
   const slugMap = new Map();
 
   for (const file of files) {
-    const fileSlug = pathToSlug(file.path.split('/').map(stripOrderPrefix).join('/'));
+    const fileSlug = pathToSlug(file.path);
     slugMap.set(fileSlug, file.path);
   }
 
@@ -309,5 +316,5 @@ export async function getAllDocSlugs() {
   const tree = await getContentTree();
   const files = tree.filter((item) => item.type === 'file');
 
-  return files.map((file) => pathToSlug(file.path.split('/').map(stripOrderPrefix).join('/')));
+  return files.map((file) => pathToSlug(file.path));
 }

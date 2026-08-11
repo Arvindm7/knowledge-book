@@ -130,6 +130,12 @@ function stripOrderPrefix(name) {
   return name.replace(/^\d+[-_]/, '');
 }
 
+function slugifySegment(segment) {
+  return stripOrderPrefix(segment)
+    .replace(/\s+/g, '-')
+    .toLowerCase();
+}
+
 function extractOrder(name) {
   const match = name.match(/^(\d+)[-_]/);
   return match ? parseInt(match[1], 10) : Infinity;
@@ -145,7 +151,7 @@ function pathToSlug(filePath) {
   return filePath
     .replace(/\.(mdx?|md)$/, '')
     .split('/')
-    .map(stripOrderPrefix)
+    .map(slugifySegment)
     .join('/')
     .replace(/\/index$/, '')
     .replace(/^index$/, '')
@@ -205,7 +211,7 @@ function generateManifests(tree) {
   for (const dir of directories) {
     const parts = dir.path.split('/');
     const name = parts[parts.length - 1];
-    const slug = dir.path.split('/').map(stripOrderPrefix).join('/');
+    const slug = dir.path.split('/').map(slugifySegment).join('/');
 
     nodeMap.set(dir.path, {
       title: nameToTitle(stripOrderPrefix(name)),
