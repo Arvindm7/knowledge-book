@@ -3,9 +3,9 @@
 import { ResizeHandle, useResizableWidth } from '@/components/layout/resize-handle';
 import { TableOfContents } from './table-of-contents';
 
-const TOC_DEFAULT_WIDTH = 224; // 14rem = w-56
-const TOC_MIN_WIDTH = 160;
-const TOC_MAX_WIDTH = 360;
+const TOC_DEFAULT_WIDTH = 192; // 12rem = w-48
+const TOC_MIN_WIDTH = 140;
+const TOC_MAX_WIDTH = 320;
 
 /**
  * ResizableToc — wraps the Table of Contents with a drag-to-resize handle.

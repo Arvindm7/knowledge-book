@@ -289,7 +289,7 @@ export function HomeContent({ categories, recentPages, stats }) {
               return (
                 <FadeInStaggerItem key={cat.slug}>
                   <Link
-                    href={`/docs/${cat.slug}`}
+                    href={cat.href || `/docs/${cat.slug}`}
                     className={`group flex items-center gap-4 rounded-xl border ${style.border} ${style.bg} p-4 transition-all hover:shadow-md`}
                   >
                     <span className="text-2xl" role="img" aria-hidden="true">

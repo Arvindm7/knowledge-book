@@ -1,6 +1,6 @@
 import { PageLayout } from '@/components/layout';
 import { HomeContent } from '@/components/home';
-import { getDocsNavigationTree } from '@/services/docs';
+import { getDocsNavigationTree, findFirstPageInDir } from '@/services/docs';
 import { hasLocalContent, getLocalMetadata } from '@/services/content';
 
 /**
@@ -11,8 +11,16 @@ async function getHomePageData() {
   try {
     const navTree = await getDocsNavigationTree();
 
-    // Categories = top-level directories
-    const categories = navTree.filter((node) => node.isDirectory);
+    // Categories = top-level directories, with href resolved to first child page
+    const categories = navTree
+      .filter((node) => node.isDirectory)
+      .map((node) => {
+        const firstChildSlug = findFirstPageInDir(node.slug, navTree);
+        return {
+          ...node,
+          href: firstChildSlug ? `/docs/${firstChildSlug}` : `/docs/${node.slug}`,
+        };
+      });
 
     // Flatten all pages for stats
     const allPages = [];

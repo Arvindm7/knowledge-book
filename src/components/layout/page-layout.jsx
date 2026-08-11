@@ -61,7 +61,7 @@ export function PageLayout({ children, showSidebar = true, navItems, className }
             className
           )}
         >
-          <div className="mx-auto max-w-4xl">{children}</div>
+          <div className="mx-auto max-w-5xl">{children}</div>
         </main>
       </div>
 
