@@ -20,9 +20,9 @@ import { cn } from '@/lib/utils';
  * @param {Array} [props.navItems=[]] - Navigation tree from getDocsNavigationTree().
  * @returns {React.ReactElement}
  */
-export function Sidebar({ className, navItems = [] }) {
+export function Sidebar({ className, navItems = [], style }) {
   return (
-    <aside className={cn('hidden w-64 shrink-0 lg:block', className)}>
+    <aside className={cn('hidden shrink-0 lg:block', className)} style={style}>
       <div className="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain border-r border-border/40 py-6 pr-2 pl-6 scrollbar-thin">
         <nav aria-label="Documentation navigation" className="space-y-6">
           {navItems.length > 0 ? (

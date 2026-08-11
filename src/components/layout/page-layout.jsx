@@ -6,6 +6,11 @@ import { Navbar } from './navbar';
 import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { Footer } from './footer';
+import { ResizeHandle, useResizableWidth } from './resize-handle';
+
+const LEFT_SIDEBAR_DEFAULT = 256; // 16rem = w-64
+const LEFT_SIDEBAR_MIN = 200;
+const LEFT_SIDEBAR_MAX = 420;
 
 /**
  * PageLayout — composition root for the application shell.
@@ -22,6 +27,10 @@ import { Footer } from './footer';
  */
 export function PageLayout({ children, showSidebar = true, navItems, className }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useResizableWidth(
+    LEFT_SIDEBAR_DEFAULT,
+    'docs-sidebar-width'
+  );
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -31,7 +40,19 @@ export function PageLayout({ children, showSidebar = true, navItems, className }
       <MobileSidebar open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} navItems={navItems} />
 
       <div className="flex flex-1">
-        {showSidebar && <Sidebar navItems={navItems} />}
+        {showSidebar && (
+          <>
+            <Sidebar navItems={navItems} style={{ width: sidebarWidth }} />
+            <ResizeHandle
+              side="left"
+              defaultWidth={LEFT_SIDEBAR_DEFAULT}
+              minWidth={LEFT_SIDEBAR_MIN}
+              maxWidth={LEFT_SIDEBAR_MAX}
+              storageKey="docs-sidebar-width"
+              onResize={setSidebarWidth}
+            />
+          </>
+        )}
 
         <main
           className={cn(

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getDocBySlug, getAllDocSlugs } from '@/services/docs';
 import { extractHeadings } from '@/lib/mdx';
 import { MdxContent } from '@/components/docs/mdx-content';
-import { TableOfContents } from '@/components/docs/table-of-contents';
+import { ResizableToc } from '@/components/docs/resizable-toc';
 import { Breadcrumbs } from '@/components/docs/breadcrumbs';
 import { DocPagination } from '@/components/docs/doc-pagination';
 import { DocMeta } from '@/components/docs/doc-meta';
@@ -169,14 +169,8 @@ export default async function DocPage({ params }) {
         <DocPagination prev={doc.prev} next={doc.next} />
       </article>
 
-      {/* Table of Contents — desktop right rail */}
-      {headings.length > 0 && (
-        <aside className="hidden w-56 shrink-0 xl:block">
-          <div className="sticky top-20">
-            <TableOfContents headings={headings} />
-          </div>
-        </aside>
-      )}
+      {/* Table of Contents — resizable right rail */}
+      <ResizableToc headings={headings} />
     </div>
   );
 }
