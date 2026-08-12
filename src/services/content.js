@@ -25,20 +25,16 @@ const CONTENT_DIR = path.join(ROOT_DIR, '.content', 'knowledge-base');
 const GENERATED_DIR = path.join(ROOT_DIR, '.content', 'generated');
 
 /**
- * Checks if real local content exists (build mode with cloned repo).
+ * Checks if generated content manifests exist.
  *
- * Returns true only when:
- * 1. The generated manifests exist, AND
- * 2. The actual content directory exists (repo was cloned)
- *
- * This prevents empty manifests (from a build without content) from
- * blocking the GitHub API fallback in dev mode.
+ * Returns true when the generated manifests (routes, sidebar, metadata)
+ * are available — regardless of whether the raw content directory is at
+ * the default `.content/knowledge-base/` path or an external location.
  *
  * @returns {boolean}
  */
 export function hasLocalContent() {
   return (
-    fs.existsSync(CONTENT_DIR) &&
     fs.existsSync(path.join(GENERATED_DIR, 'routes.json')) &&
     fs.existsSync(path.join(GENERATED_DIR, 'sidebar.json')) &&
     fs.existsSync(path.join(GENERATED_DIR, 'metadata.json'))

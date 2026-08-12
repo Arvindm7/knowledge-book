@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 /**
  * Sidebar — Stripe/Vercel-inspired documentation sidebar.
@@ -12,7 +13,7 @@ import { cn } from '@/lib/utils';
  * - Sticky positioning within the docs layout
  * - Unlimited nested folder depth
  * - Animated expand/collapse with chevron rotation
- * - Active link highlighting and auto-expansion
+ * - Active link highlighting with animated sliding indicator
  * - Thin scrollbar styling
  *
  * @param {object} props
@@ -59,6 +60,8 @@ function NavTree({ items, depth = 0 }) {
 
 /**
  * Single navigation item — either a link or a collapsible section.
+ * Active items get a smooth animated background + left accent bar
+ * using Framer Motion's layoutId for sliding transitions.
  */
 function NavItem({ item, depth }) {
   const pathname = usePathname();
@@ -113,13 +116,37 @@ function NavItem({ item, depth }) {
       <Link
         href={href}
         className={cn(
-          'block rounded-md px-2 py-1.5 text-sm transition-all duration-150',
+          'relative block rounded-md px-2 py-1.5 text-sm transition-all duration-150',
           isActive
-            ? 'bg-primary/10 font-medium text-primary'
+            ? 'font-medium text-primary'
             : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
         )}
       >
-        <span className="truncate">{item.title}</span>
+        {/* Animated active background */}
+        {isActive && (
+          <motion.div
+            layoutId="sidebar-active-indicator"
+            className="absolute inset-0 rounded-md bg-primary/10"
+            transition={{
+              type: 'spring',
+              stiffness: 380,
+              damping: 30,
+            }}
+          />
+        )}
+        {/* Animated left accent bar */}
+        {isActive && (
+          <motion.div
+            layoutId="sidebar-active-bar"
+            className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary"
+            transition={{
+              type: 'spring',
+              stiffness: 380,
+              damping: 30,
+            }}
+          />
+        )}
+        <span className="relative truncate">{item.title}</span>
       </Link>
     </li>
   );

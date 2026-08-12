@@ -11,6 +11,7 @@ import { ResizableToc } from '@/components/docs/resizable-toc';
 import { Breadcrumbs } from '@/components/docs/breadcrumbs';
 import { DocPagination } from '@/components/docs/doc-pagination';
 import { DocMeta } from '@/components/docs/doc-meta';
+import { BookmarkButton } from '@/components/docs/bookmark-button';
 
 /**
  * Allow pages not in generateStaticParams to be rendered dynamically.
@@ -158,9 +159,12 @@ export default async function DocPage({ params }) {
 
         {/* Page header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {doc.title}
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {doc.title}
+            </h1>
+            <BookmarkButton slug={slug} title={doc.title} />
+          </div>
 
           {doc.description && (
             <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{doc.description}</p>

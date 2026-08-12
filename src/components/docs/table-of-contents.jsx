@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 /**
- * TableOfContents — sticky right-rail with scroll-spy and progress indicator.
+ * TableOfContents — sticky right-rail with scroll-spy and animated active indicator.
  *
  * Features:
  * - IntersectionObserver-based active heading tracking
- * - Visual progress indicator line along the left edge
+ * - Smooth animated indicator that slides to the active item (measured from DOM)
+ * - Progress bar showing read percentage
  * - Smooth scroll on click
- * - Responsive: hidden on smaller screens
  *
  * @param {object} props
  * @param {Array<{ id: string, text: string, level: number }>} props.headings
@@ -19,22 +20,57 @@ import { cn } from '@/lib/utils';
  */
 export function TableOfContents({ headings, className }) {
   const [activeId, setActiveId] = useState('');
+  const [readProgress, setReadProgress] = useState(0);
   const observerRef = useRef(null);
+  const itemRefs = useRef({});
+  const listRef = useRef(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 });
 
+  // Measure the active item and position the indicator
+  const updateIndicator = useCallback(() => {
+    if (!activeId || !listRef.current) return;
+    const activeEl = itemRefs.current[activeId];
+    if (!activeEl) return;
+
+    const listRect = listRef.current.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+
+    setIndicatorStyle({
+      top: itemRect.top - listRect.top,
+      height: itemRect.height,
+      opacity: 1,
+    });
+  }, [activeId]);
+
+  // Update indicator when activeId changes
+  useEffect(() => {
+    updateIndicator();
+  }, [updateIndicator]);
+
+  // Scroll progress tracking
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0) {
+        setReadProgress(Math.min(1, window.scrollY / scrollHeight));
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // IntersectionObserver for active heading detection
   useEffect(() => {
     if (!headings.length) return;
 
-    // Disconnect previous observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the first intersecting entry (top of viewport wins)
         const intersecting = entries.filter((e) => e.isIntersecting);
         if (intersecting.length > 0) {
-          // Pick the one closest to top
           const sorted = intersecting.sort(
             (a, b) => a.boundingClientRect.top - b.boundingClientRect.top
           );
@@ -49,10 +85,8 @@ export function TableOfContents({ headings, className }) {
 
     observerRef.current = observer;
 
-    // Slight delay to let rehype-slug finish rendering
     const timeout = setTimeout(() => {
       const elements = headings.map((h) => document.getElementById(h.id)).filter(Boolean);
-
       for (const el of elements) {
         observer.observe(el);
       }
@@ -66,28 +100,46 @@ export function TableOfContents({ headings, className }) {
 
   if (!headings.length) return null;
 
-  // Calculate active index for the progress indicator
-  const activeIndex = headings.findIndex((h) => h.id === activeId);
-
   return (
     <nav aria-label="Table of contents" className={cn('space-y-1', className)}>
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        On this page
-      </p>
-      <div className="relative">
-        {/* Progress indicator track */}
-        <div className="absolute left-0 top-0 bottom-0 w-px bg-border/60" />
+      {/* Header with progress */}
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          On this page
+        </p>
+        <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50">
+          {Math.round(readProgress * 100)}%
+        </span>
+      </div>
 
-        {/* Active indicator */}
-        {activeIndex >= 0 && (
-          <div
-            className="absolute left-0 w-0.5 rounded-full bg-primary transition-all duration-300 ease-out"
-            style={{
-              top: `${activeIndex * 28 + 2}px`,
-              height: '24px',
-            }}
-          />
-        )}
+      {/* Read progress bar */}
+      <div className="mb-4 h-0.5 w-full overflow-hidden rounded-full bg-border/40">
+        <motion.div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${readProgress * 100}%` }}
+          transition={{ duration: 0.1 }}
+        />
+      </div>
+
+      <div className="relative" ref={listRef}>
+        {/* Track line */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-border/40" />
+
+        {/* Animated active indicator */}
+        <motion.div
+          className="absolute left-0 w-0.5 rounded-full bg-primary"
+          animate={{
+            top: indicatorStyle.top,
+            height: indicatorStyle.height,
+            opacity: indicatorStyle.opacity,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 350,
+            damping: 30,
+            mass: 0.8,
+          }}
+        />
 
         <ul className="space-y-0.5 pl-3">
           {headings.map((heading) => {
@@ -95,23 +147,25 @@ export function TableOfContents({ headings, className }) {
             return (
               <li key={heading.id}>
                 <a
+                  ref={(el) => {
+                    if (el) itemRefs.current[heading.id] = el;
+                  }}
                   href={`#${heading.id}`}
                   onClick={(e) => {
                     e.preventDefault();
                     const el = document.getElementById(heading.id);
                     if (el) {
                       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      // Update URL hash without scrolling
                       window.history.pushState(null, '', `#${heading.id}`);
                     }
                   }}
                   className={cn(
-                    'block py-1 text-[13px] leading-snug transition-colors duration-150',
+                    'block rounded-r-md py-1.5 text-[13px] leading-snug transition-all duration-200',
                     heading.level === 3 && 'pl-3',
                     heading.level === 4 && 'pl-6',
                     isActive
                       ? 'font-medium text-primary'
-                      : 'text-muted-foreground hover:text-foreground'
+                      : 'text-muted-foreground/70 hover:text-foreground'
                   )}
                 >
                   {heading.text}

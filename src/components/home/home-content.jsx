@@ -12,13 +12,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { siteConfig } from '@/config/site';
 import { useSearch } from '@/components/search/search-provider';
-import {
-  FadeIn,
-  FadeInStagger,
-  FadeInStaggerItem,
-  ScaleIn,
-  CountUpInner,
-} from '@/components/common/motion';
+import { useBookmarks } from '@/hooks/use-bookmarks';
+import { FadeIn, FadeInStagger, FadeInStaggerItem, CountUpInner } from '@/components/common/motion';
 
 // ─── Icons (inline SVG for zero-dependency) ──────────────────────────────────
 
@@ -102,13 +97,13 @@ function ArrowRightIcon(props) {
   );
 }
 
-function ChartIcon(props) {
+function BookmarkIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+        d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
       />
     </svg>
   );
@@ -161,58 +156,72 @@ function SectionHeader({ icon: Icon, title, subtitle, action }) {
 
 export function HomeContent({ categories, recentPages, stats }) {
   const { openSearch } = useSearch();
-
+  const { bookmarks } = useBookmarks();
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // Featured topics — static curated list
+  // Featured topics — static curated list (displayed as content on the homepage)
   const featuredTopics = [
     {
       title: 'Getting Started',
       description:
         'Begin your learning journey with fundamentals and core concepts that build a strong foundation.',
-      href: '/docs',
       icon: '🚀',
       gradient: 'from-blue-500/20 via-indigo-500/10 to-transparent',
       accentColor: 'text-blue-500',
       borderColor: 'border-blue-500/30',
+      details: ['Core language fundamentals', 'Setup and environment', 'First project walkthrough'],
     },
     {
       title: 'Architecture',
       description:
         'Explore system design patterns, architectural principles, and scalable application structures.',
-      href: '/docs',
       icon: '🏗️',
       gradient: 'from-violet-500/20 via-purple-500/10 to-transparent',
       accentColor: 'text-violet-500',
       borderColor: 'border-violet-500/30',
+      details: [
+        'Design patterns & principles',
+        'MVC, MVVM, Clean Architecture',
+        'Scalability strategies',
+      ],
     },
     {
       title: 'Best Practices',
       description:
         'Production-grade guidelines, coding standards, and proven methodologies for clean code.',
-      href: '/docs',
       icon: '✅',
       gradient: 'from-emerald-500/20 via-green-500/10 to-transparent',
       accentColor: 'text-emerald-500',
       borderColor: 'border-emerald-500/30',
+      details: ['SOLID principles', 'Code review guidelines', 'Testing strategies'],
     },
     {
       title: 'Quick Reference',
       description:
         'Cheat sheets, syntax guides, and ready-to-use code snippets for rapid development.',
-      href: '/docs',
       icon: '⚡',
       gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
       accentColor: 'text-amber-500',
       borderColor: 'border-amber-500/30',
+      details: ['Syntax cheat sheets', 'Common algorithms', 'API reference guides'],
+    },
+    {
+      title: 'Deep Dives',
+      description:
+        'In-depth explorations of complex topics with detailed examples and visual explanations.',
+      icon: '🔬',
+      gradient: 'from-rose-500/20 via-pink-500/10 to-transparent',
+      accentColor: 'text-rose-500',
+      borderColor: 'border-rose-500/30',
+      details: ['Detailed case studies', 'Step-by-step breakdowns', 'Visual explanations'],
     },
   ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       {/* ── HERO ── */}
-      <section className="relative pb-16 pt-12 sm:pb-24 sm:pt-20">
-        {/* Subtle gradient orb background */}
+      <section className="relative pb-20 pt-16 sm:pb-28 sm:pt-24">
+        {/* Subtle gradient background */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
           aria-hidden="true"
@@ -220,8 +229,9 @@ export function HomeContent({ categories, recentPages, stats }) {
           <div className="absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
         </div>
 
-        <FadeIn delay={0.1} className="text-center">
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+        {/* Heading */}
+        <FadeIn delay={0.05} className="text-center">
+          <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Everything I know,{' '}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               organized
@@ -229,15 +239,15 @@ export function HomeContent({ categories, recentPages, stats }) {
           </h1>
         </FadeIn>
 
-        <FadeIn delay={0.2} className="text-center">
+        <FadeIn delay={0.15} className="text-center">
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
             A curated collection of notes, guides, and references — structured for quick retrieval
             and deep learning.
           </p>
         </FadeIn>
 
-        {/* Global Search Bar */}
-        <FadeIn delay={0.3} className="mt-10 flex justify-center">
+        {/* Search Bar */}
+        <FadeIn delay={0.25} className="mt-10 flex justify-center">
           <button
             onClick={openSearch}
             className="group flex h-12 w-full max-w-lg items-center gap-3 rounded-xl border border-border/80 bg-background/80 px-5 text-sm text-muted-foreground shadow-lg shadow-black/5 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -251,8 +261,8 @@ export function HomeContent({ categories, recentPages, stats }) {
           </button>
         </FadeIn>
 
-        {/* Quick CTAs */}
-        <FadeIn delay={0.4} className="mt-6 flex items-center justify-center gap-3">
+        {/* CTAs */}
+        <FadeIn delay={0.35} className="mt-6 flex items-center justify-center gap-3">
           <Link
             href="/docs"
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
@@ -272,47 +282,51 @@ export function HomeContent({ categories, recentPages, stats }) {
             Source
           </a>
         </FadeIn>
-      </section>
 
-      {/* ── STATISTICS ── */}
-      <section className="pb-16">
-        <FadeIn delay={0.5}>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              { label: 'Total Notes', value: stats.totalPages, icon: BookIcon },
-              { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },
-              {
-                label: 'Last Synced',
-                value: stats.lastSynced
-                  ? new Date(stats.lastSynced).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : 'Not synced',
-                isText: true,
-                icon: SyncIcon,
-              },
-              { label: 'Topics Covered', value: stats.totalTopics, icon: SparklesIcon },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="group rounded-xl border border-border/50 bg-card/50 p-5 text-center transition-all hover:border-border hover:bg-card hover:shadow-sm"
-              >
-                <stat.icon
-                  className="mx-auto mb-3 h-5 w-5 text-muted-foreground/60 transition-colors group-hover:text-primary"
-                  aria-hidden="true"
-                />
-                <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {stat.isText ? (
-                    <span className="text-lg sm:text-xl">{stat.value}</span>
-                  ) : (
-                    <CountUpInner target={stat.value} duration={1.5} suffix={stat.suffix || ''} />
+        {/* Stats Bar */}
+        <FadeIn delay={0.45} className="mt-16">
+          <div className="mx-auto max-w-3xl rounded-2xl border border-border/50 bg-card/40 px-6 py-6 shadow-sm backdrop-blur-sm sm:px-10 sm:py-8">
+            <div className="flex items-center justify-between">
+              {[
+                { label: 'Notes', value: stats.totalPages, icon: BookIcon },
+                { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },
+                {
+                  label: 'Last Synced',
+                  value: stats.lastSynced
+                    ? new Date(stats.lastSynced).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    : '—',
+                  isText: true,
+                  icon: SyncIcon,
+                },
+                { label: 'Topics', value: stats.totalTopics, icon: SparklesIcon },
+              ].map((stat, i) => (
+                <div key={stat.label} className="flex items-center gap-4">
+                  {i > 0 && (
+                    <div className="hidden h-10 w-px bg-border/50 sm:block" aria-hidden="true" />
                   )}
+                  <div className="flex items-center gap-3">
+                    <div className="hidden rounded-lg bg-primary/5 p-2 sm:block">
+                      <stat.icon className="h-5 w-5 text-primary/70" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                        {stat.isText ? (
+                          <span className="text-base font-semibold sm:text-lg">{stat.value}</span>
+                        ) : (
+                          <CountUpInner target={stat.value} duration={1.5} />
+                        )}
+                      </div>
+                      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                        {stat.label}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-1 text-xs font-medium text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </FadeIn>
       </section>
@@ -474,31 +488,20 @@ export function HomeContent({ categories, recentPages, stats }) {
 
                   {/* Content */}
                   <div className="relative z-10 flex flex-1 flex-col justify-center p-8 sm:p-10">
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1, duration: 0.3 }}
-                      className="mb-2 flex items-center gap-3"
-                    >
-                      <span className="text-4xl">{featuredTopics[activeFeature].icon}</span>
-                      <div
-                        className={`h-px flex-1 bg-gradient-to-r from-current to-transparent opacity-20 ${featuredTopics[activeFeature].accentColor}`}
-                      />
-                    </motion.div>
-
                     <motion.h3
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15, duration: 0.3 }}
-                      className="mt-3 text-xl font-bold tracking-tight text-foreground sm:text-2xl"
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                      className="flex items-center gap-3 text-xl font-bold tracking-tight text-foreground sm:text-2xl"
                     >
+                      <span className="text-3xl">{featuredTopics[activeFeature].icon}</span>
                       {featuredTopics[activeFeature].title}
                     </motion.h3>
 
                     <motion.p
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
+                      transition={{ delay: 0.15, duration: 0.3 }}
                       className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground"
                     >
                       {featuredTopics[activeFeature].description}
@@ -507,33 +510,39 @@ export function HomeContent({ categories, recentPages, stats }) {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25, duration: 0.3 }}
-                      className="mt-6"
+                      transition={{ delay: 0.2, duration: 0.3 }}
+                      className="mt-5"
                     >
-                      <Link
-                        href={featuredTopics[activeFeature].href}
-                        className="group/btn inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-                      >
-                        Explore {featuredTopics[activeFeature].title}
-                        <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
-                      </Link>
+                      <ul className="space-y-2.5">
+                        {featuredTopics[activeFeature].details.map((detail) => (
+                          <li
+                            key={detail}
+                            className="flex items-center gap-2.5 text-sm text-foreground/80"
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 shrink-0 rounded-full ${featuredTopics[activeFeature].accentColor.replace('text-', 'bg-')}`}
+                            />
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
                     </motion.div>
-                  </div>
 
-                  {/* Progress dots */}
-                  <div className="relative z-10 flex items-center justify-center gap-2 pb-6">
-                    {featuredTopics.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveFeature(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          activeFeature === i
-                            ? 'w-6 bg-primary'
-                            : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                        }`}
-                        aria-label={`Show ${featuredTopics[i].title}`}
-                      />
-                    ))}
+                    {/* Progress dots */}
+                    <div className="mt-8 flex items-center gap-2">
+                      {featuredTopics.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveFeature(i)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            activeFeature === i
+                              ? 'w-6 bg-primary'
+                              : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                          }`}
+                          aria-label={`Show ${featuredTopics[i].title}`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -541,6 +550,193 @@ export function HomeContent({ categories, recentPages, stats }) {
           </div>
         </FadeIn>
       </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="pb-16">
+        <FadeIn>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              How It Works
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
+              A simple pipeline from writing to reading — no databases, no CMS.
+            </p>
+          </div>
+        </FadeIn>
+
+        <div className="mt-12">
+          {/* ── Badge + Wiring ── */}
+          <FadeIn delay={0.1}>
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 shadow-md">
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Powered by
+                </span>
+                <div className="h-4 w-px bg-border" />
+                <div className="flex items-center gap-1.5">
+                  {['Next.js', 'MDX', 'Shiki', 'Pagefind'].map((tech) => (
+                    <span
+                      key={tech}
+                      className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* ── Branching Lines (desktop) ── */}
+          <div className="relative hidden sm:block" aria-hidden="true">
+            <div className="mx-auto h-20 max-w-3xl">
+              {/* Vertical trunk from badge */}
+              <div className="absolute left-1/2 top-0 h-8 w-px -translate-x-1/2 bg-border" />
+              {/* Horizontal branch */}
+              <div className="absolute left-[16.67%] top-8 h-px w-[66.66%] bg-border" />
+              {/* Left vertical drop */}
+              <div className="absolute left-[16.67%] top-8 h-12 w-px bg-border" />
+              {/* Center vertical drop */}
+              <div className="absolute left-1/2 top-8 h-12 w-px -translate-x-1/2 bg-border" />
+              {/* Right vertical drop */}
+              <div className="absolute right-[16.67%] top-8 h-12 w-px bg-border" />
+              {/* Corner pieces — small colored accents at the branch points */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="absolute left-[16.67%] top-[30px] h-2 w-2 -translate-x-1/2 rounded-full bg-blue-500/60"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="absolute left-1/2 top-[30px] h-2 w-2 -translate-x-1/2 rounded-full bg-violet-500/60"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+                className="absolute right-[16.67%] top-[30px] h-2 w-2 -translate-x-1/2 rounded-full bg-emerald-500/60"
+              />
+            </div>
+          </div>
+
+          {/* Mobile spacer */}
+          <div className="h-8 sm:hidden" />
+
+          {/* ── Step Cards ── */}
+          <div className="relative z-10 grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                step: '01',
+                icon: '📝',
+                title: 'Write in Markdown',
+                description:
+                  "Create notes in your favorite editor using plain Markdown. Organize files into folders — that's your category structure.",
+                accent: 'from-blue-500/10 to-blue-500/5',
+                borderHover: 'hover:border-blue-500/30',
+                iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+              },
+              {
+                step: '02',
+                icon: '🔄',
+                title: 'Push & Auto-Sync',
+                description:
+                  'Push to GitHub and the site automatically rebuilds. No databases, no CMS — just Git.',
+                accent: 'from-violet-500/10 to-violet-500/5',
+                borderHover: 'hover:border-violet-500/30',
+                iconBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+              },
+              {
+                step: '03',
+                icon: '🔍',
+                title: 'Browse & Search',
+                description:
+                  'Full-text search, syntax highlighting, dark mode, and a clean reading experience — all generated statically.',
+                accent: 'from-emerald-500/10 to-emerald-500/5',
+                borderHover: 'hover:border-emerald-500/30',
+                iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.2 + i * 0.12 }}
+              >
+                <div
+                  className={`h-full rounded-xl border border-border/50 bg-gradient-to-b ${item.accent} p-6 transition-all duration-300 ${item.borderHover} hover:shadow-lg`}
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg ${item.iconBg}`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">
+                      Step {item.step}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── YOUR BOOKMARKS ── */}
+      {bookmarks.length > 0 && (
+        <section className="pb-16">
+          <FadeIn>
+            <SectionHeader
+              icon={BookmarkIcon}
+              title="Your Bookmarks"
+              subtitle="Pages you've saved for quick access"
+            />
+          </FadeIn>
+          <FadeInStagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {bookmarks.slice(0, 6).map((bm) => (
+              <FadeInStaggerItem key={bm.slug}>
+                <Link
+                  href={`/docs/${bm.slug}`}
+                  className="group flex h-full items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 transition-all hover:border-amber-500/40 hover:shadow-md"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                    <svg
+                      className="h-4 w-4 text-amber-600 dark:text-amber-400"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-foreground">{bm.title}</h3>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Saved{' '}
+                      {new Date(bm.timestamp).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-all group-hover:translate-x-0.5 group-hover:text-amber-500" />
+                </Link>
+              </FadeInStaggerItem>
+            ))}
+          </FadeInStagger>
+        </section>
+      )}
 
       {/* ── RECENTLY UPDATED ── */}
       {recentPages.length > 0 && (
@@ -586,127 +782,83 @@ export function HomeContent({ categories, recentPages, stats }) {
         </section>
       )}
 
-      {/* ── LEARNING PROGRESS ── */}
-      <section className="pb-16">
-        <FadeIn>
-          <SectionHeader
-            icon={ChartIcon}
-            title="Learning Progress"
-            subtitle="Your knowledge base at a glance"
-          />
-        </FadeIn>
-        <ScaleIn delay={0.1}>
-          <div className="rounded-xl border border-border/50 bg-card/50 p-6 sm:p-8">
-            <div className="grid gap-6 sm:grid-cols-3">
-              {/* Coverage meter */}
-              <div className="text-center">
-                <div className="relative mx-auto mb-3 h-20 w-20">
-                  <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="6"
-                      className="text-muted/50"
-                    />
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="6"
-                      className="text-primary"
-                      strokeDasharray={`${Math.min(stats.totalPages * 3, 213.6)} 213.6`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-foreground">
-                    {Math.min(stats.totalPages * 3, 100)}%
-                  </span>
-                </div>
-                <p className="text-xs font-medium text-muted-foreground">Content Coverage</p>
-              </div>
-
-              {/* Recent activity */}
-              <div className="text-center">
-                <div className="mb-3 flex h-20 items-end justify-center gap-1">
-                  {[40, 65, 45, 80, 55, 70, 90].map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-3 rounded-t bg-primary/20 transition-colors hover:bg-primary/40"
-                      style={{ height: `${h}%` }}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs font-medium text-muted-foreground">Weekly Activity</p>
-              </div>
-
-              {/* Difficulty breakdown */}
-              <div>
-                <div className="space-y-3 pt-2">
-                  {[
-                    { label: 'Beginner', pct: 45, color: 'bg-emerald-500' },
-                    { label: 'Intermediate', pct: 35, color: 'bg-amber-500' },
-                    { label: 'Advanced', pct: 20, color: 'bg-rose-500' },
-                  ].map((item) => (
-                    <div key={item.label}>
-                      <div className="mb-1 flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{item.label}</span>
-                        <span className="font-medium text-foreground">{item.pct}%</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-muted">
-                        <div
-                          className={`h-full rounded-full ${item.color} transition-all`}
-                          style={{ width: `${item.pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
-                  Difficulty Spread
-                </p>
-              </div>
-            </div>
-          </div>
-        </ScaleIn>
-      </section>
-
       {/* ── CONTINUE READING (CTA) ── */}
       <section className="pb-20">
         <FadeIn>
-          <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8 sm:p-12">
-            {/* Decorative dots */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 -z-10 h-48 w-48 opacity-30"
-              aria-hidden="true"
-            >
-              <div className="grid h-full w-full grid-cols-6 gap-2 p-4">
-                {Array.from({ length: 36 }).map((_, i) => (
-                  <div key={i} className="h-1 w-1 rounded-full bg-primary/30" />
-                ))}
-              </div>
-            </div>
+          <div className="relative overflow-hidden rounded-2xl">
+            {/* Gradient border */}
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-blue-500/30 via-violet-500/30 to-emerald-500/30 opacity-60" />
 
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-                  Continue your learning journey
-                </h2>
-                <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                  Pick up where you left off, or discover something new in the knowledge base.
-                </p>
-              </div>
-              <Link
-                href="/docs"
-                className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+            <div className="relative rounded-2xl bg-gradient-to-br from-card via-background to-card p-8 sm:p-12">
+              {/* Animated floating particles */}
+              <div
+                className="pointer-events-none absolute inset-0 overflow-hidden"
+                aria-hidden="true"
               >
-                Open Knowledge Base
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
+                <motion.div
+                  animate={{
+                    y: [0, -15, 0],
+                    x: [0, 10, 0],
+                    opacity: [0.15, 0.3, 0.15],
+                  }}
+                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute right-12 top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 blur-2xl"
+                />
+                <motion.div
+                  animate={{
+                    y: [0, 10, 0],
+                    x: [0, -8, 0],
+                    opacity: [0.1, 0.25, 0.1],
+                  }}
+                  transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute bottom-4 left-16 h-24 w-24 rounded-full bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 blur-2xl"
+                />
+                {/* Dot grid */}
+                <div className="absolute right-4 top-4 grid grid-cols-4 gap-2 opacity-20 sm:right-8 sm:top-8">
+                  {Array.from({ length: 16 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ opacity: [0.2, 0.8, 0.2] }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                      }}
+                      className="h-1 w-1 rounded-full bg-primary"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative z-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                <div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <motion.div
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                      className="text-2xl"
+                    >
+                      📚
+                    </motion.div>
+                    <div className="h-px w-12 bg-gradient-to-r from-primary/40 to-transparent" />
+                  </div>
+                  <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                    Continue your learning journey
+                  </h2>
+                  <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                    Pick up where you left off, or discover something new in the knowledge base.
+                  </p>
+                </div>
+                <Link
+                  href="/docs"
+                  className="group/cta relative inline-flex h-11 shrink-0 items-center gap-2 overflow-hidden rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Open Knowledge Base
+                    <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/cta:translate-x-0.5" />
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </FadeIn>
