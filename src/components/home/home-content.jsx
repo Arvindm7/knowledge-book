@@ -8,6 +8,8 @@
  */
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { siteConfig } from '@/config/site';
 import { useSearch } from '@/components/search/search-provider';
 import {
@@ -160,26 +162,49 @@ function SectionHeader({ icon: Icon, title, subtitle, action }) {
 export function HomeContent({ categories, recentPages, stats }) {
   const { openSearch } = useSearch();
 
+  const [activeFeature, setActiveFeature] = useState(0);
+
   // Featured topics — static curated list
   const featuredTopics = [
     {
       title: 'Getting Started',
-      description: 'Start your learning journey here',
+      description:
+        'Begin your learning journey with fundamentals and core concepts that build a strong foundation.',
       href: '/docs',
       icon: '🚀',
+      gradient: 'from-blue-500/20 via-indigo-500/10 to-transparent',
+      accentColor: 'text-blue-500',
+      borderColor: 'border-blue-500/30',
     },
-    { title: 'Architecture', description: 'System design and patterns', href: '/docs', icon: '🏗️' },
+    {
+      title: 'Architecture',
+      description:
+        'Explore system design patterns, architectural principles, and scalable application structures.',
+      href: '/docs',
+      icon: '🏗️',
+      gradient: 'from-violet-500/20 via-purple-500/10 to-transparent',
+      accentColor: 'text-violet-500',
+      borderColor: 'border-violet-500/30',
+    },
     {
       title: 'Best Practices',
-      description: 'Production-grade guidelines',
+      description:
+        'Production-grade guidelines, coding standards, and proven methodologies for clean code.',
       href: '/docs',
       icon: '✅',
+      gradient: 'from-emerald-500/20 via-green-500/10 to-transparent',
+      accentColor: 'text-emerald-500',
+      borderColor: 'border-emerald-500/30',
     },
     {
       title: 'Quick Reference',
-      description: 'Cheat sheets and snippets',
+      description:
+        'Cheat sheets, syntax guides, and ready-to-use code snippets for rapid development.',
       href: '/docs',
       icon: '⚡',
+      gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
+      accentColor: 'text-amber-500',
+      borderColor: 'border-amber-500/30',
     },
   ];
 
@@ -194,13 +219,6 @@ export function HomeContent({ categories, recentPages, stats }) {
         >
           <div className="absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
         </div>
-
-        <FadeIn className="text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Personal Knowledge Base
-          </div>
-        </FadeIn>
 
         <FadeIn delay={0.1} className="text-center">
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
@@ -317,9 +335,9 @@ export function HomeContent({ categories, recentPages, stats }) {
                 <FadeInStaggerItem key={cat.slug}>
                   <Link
                     href={cat.href || `/docs/${cat.slug}`}
-                    className={`group flex items-center gap-4 rounded-xl border ${style.border} ${style.bg} p-4 transition-all hover:shadow-md`}
+                    className={`group flex h-full min-h-[72px] items-center gap-4 rounded-xl border ${style.border} ${style.bg} p-4 transition-all hover:shadow-md`}
                   >
-                    <span className="text-2xl" role="img" aria-hidden="true">
+                    <span className="text-2xl shrink-0" role="img" aria-hidden="true">
                       {style.icon}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -328,7 +346,7 @@ export function HomeContent({ categories, recentPages, stats }) {
                         {cat.children?.length || 0} notes
                       </p>
                     </div>
-                    <ArrowRightIcon className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
+                    <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
                   </Link>
                 </FadeInStaggerItem>
               );
@@ -346,26 +364,182 @@ export function HomeContent({ categories, recentPages, stats }) {
             subtitle="Curated starting points for your exploration"
           />
         </FadeIn>
-        <FadeInStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredTopics.map((topic) => (
-            <FadeInStaggerItem key={topic.title}>
-              <Link
-                href={topic.href}
-                className="group flex flex-col rounded-xl border border-border/50 bg-card/50 p-6 transition-all hover:border-border hover:bg-card hover:shadow-md"
-              >
-                <span className="mb-3 text-3xl">{topic.icon}</span>
-                <h3 className="text-sm font-semibold text-foreground">{topic.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                  {topic.description}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-all group-hover:opacity-100">
-                  Explore
-                  <ArrowRightIcon className="h-3 w-3" />
-                </span>
-              </Link>
-            </FadeInStaggerItem>
-          ))}
-        </FadeInStagger>
+        <FadeIn delay={0.1}>
+          <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            {/* Topic selector tabs */}
+            <div className="flex flex-row gap-2 lg:flex-col lg:gap-1">
+              {featuredTopics.map((topic, i) => (
+                <button
+                  key={topic.title}
+                  onClick={() => setActiveFeature(i)}
+                  className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-300 ${
+                    activeFeature === i
+                      ? `border ${topic.borderColor} bg-gradient-to-r ${topic.gradient} shadow-sm`
+                      : 'border border-transparent hover:border-border/50 hover:bg-muted/30'
+                  }`}
+                >
+                  <span className="text-xl shrink-0" role="img" aria-hidden="true">
+                    {topic.icon}
+                  </span>
+                  <div className="hidden sm:block min-w-0">
+                    <h3
+                      className={`text-sm font-semibold transition-colors ${
+                        activeFeature === i
+                          ? 'text-foreground'
+                          : 'text-muted-foreground group-hover:text-foreground'
+                      }`}
+                    >
+                      {topic.title}
+                    </h3>
+                  </div>
+                  {activeFeature === i && (
+                    <motion.div
+                      layoutId="active-feature-indicator"
+                      className="ml-auto hidden h-1.5 w-1.5 rounded-full bg-current lg:block"
+                      style={{ color: 'hsl(var(--primary))' }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Active topic showcase */}
+            <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/30">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeFeature}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
+                  className="relative flex h-full min-h-[280px] flex-col"
+                >
+                  {/* Animated gradient background */}
+                  <div
+                    className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${featuredTopics[activeFeature].gradient} opacity-60`}
+                    aria-hidden="true"
+                  />
+
+                  {/* Floating decorative elements */}
+                  <div
+                    className="pointer-events-none absolute inset-0 overflow-hidden"
+                    aria-hidden="true"
+                  >
+                    <motion.div
+                      animate={{
+                        y: [0, -12, 0],
+                        rotate: [0, 5, 0],
+                      }}
+                      transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                      className="absolute right-8 top-8 text-6xl opacity-20 sm:text-8xl sm:opacity-30"
+                    >
+                      {featuredTopics[activeFeature].icon}
+                    </motion.div>
+                    <motion.div
+                      animate={{
+                        y: [0, 8, 0],
+                        x: [0, -6, 0],
+                      }}
+                      transition={{
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                      className="absolute bottom-12 right-24 text-4xl opacity-10"
+                    >
+                      {featuredTopics[activeFeature].icon}
+                    </motion.div>
+
+                    {/* Animated dots grid */}
+                    <div className="absolute bottom-4 left-4 grid grid-cols-5 gap-2 opacity-15">
+                      {Array.from({ length: 15 }).map((_, i) => (
+                        <motion.div
+                          key={i}
+                          animate={{ opacity: [0.3, 1, 0.3] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: i * 0.15,
+                          }}
+                          className="h-1 w-1 rounded-full bg-current"
+                          style={{ color: 'hsl(var(--primary))' }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-1 flex-col justify-center p-8 sm:p-10">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                      className="mb-2 flex items-center gap-3"
+                    >
+                      <span className="text-4xl">{featuredTopics[activeFeature].icon}</span>
+                      <div
+                        className={`h-px flex-1 bg-gradient-to-r from-current to-transparent opacity-20 ${featuredTopics[activeFeature].accentColor}`}
+                      />
+                    </motion.div>
+
+                    <motion.h3
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15, duration: 0.3 }}
+                      className="mt-3 text-xl font-bold tracking-tight text-foreground sm:text-2xl"
+                    >
+                      {featuredTopics[activeFeature].title}
+                    </motion.h3>
+
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, duration: 0.3 }}
+                      className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground"
+                    >
+                      {featuredTopics[activeFeature].description}
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25, duration: 0.3 }}
+                      className="mt-6"
+                    >
+                      <Link
+                        href={featuredTopics[activeFeature].href}
+                        className="group/btn inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+                      >
+                        Explore {featuredTopics[activeFeature].title}
+                        <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+                      </Link>
+                    </motion.div>
+                  </div>
+
+                  {/* Progress dots */}
+                  <div className="relative z-10 flex items-center justify-center gap-2 pb-6">
+                    {featuredTopics.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveFeature(i)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          activeFeature === i
+                            ? 'w-6 bg-primary'
+                            : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                        }`}
+                        aria-label={`Show ${featuredTopics[i].title}`}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </FadeIn>
       </section>
 
       {/* ── RECENTLY UPDATED ── */}

@@ -130,11 +130,14 @@ export function CommandPalette({ open, onOpenChange }) {
     };
   }, [query]);
 
-  // Navigate to result
+  // Navigate to result — strip .html extension from Pagefind URLs
   const navigateTo = useCallback(
     (url) => {
+      // Pagefind returns URLs like /docs/foo.html or /docs/foo.html#heading
+      // Next.js uses clean URLs, so strip the .html extension
+      const cleanUrl = url.replace(/\.html(#|$)/, '$1');
       onOpenChange(false);
-      router.push(url);
+      router.push(cleanUrl);
     },
     [onOpenChange, router]
   );

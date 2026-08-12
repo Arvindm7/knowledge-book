@@ -254,6 +254,26 @@ html {
 }
 
 /*
+ * Shiki dual-theme color mapping.
+ *
+ * rehype-pretty-code with dual themes (light + dark) outputs CSS custom
+ * properties on each token span (--shiki-light, --shiki-dark) but does NOT
+ * set the `color` property directly. These rules map the variables to
+ * actual colors for each theme mode.
+ */
+[data-rehype-pretty-code-figure] code[data-theme*=' '],
+[data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '],
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+/*
  * ==========================================================================
  * KaTeX Math Rendering
  * ==========================================================================
