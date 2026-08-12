@@ -61,6 +61,10 @@ function ensureContentDirectory() {
     fs.writeFileSync(path.join(OUTPUT_DIR, 'routes.json'), '[]');
     fs.writeFileSync(path.join(OUTPUT_DIR, 'sidebar.json'), '[]');
     fs.writeFileSync(path.join(OUTPUT_DIR, 'metadata.json'), '{}');
+    fs.writeFileSync(
+      path.join(OUTPUT_DIR, 'build-info.json'),
+      JSON.stringify({ generatedAt: new Date().toISOString(), totalFiles: 0, totalDirectories: 0, repo: null, branch: BRANCH }, null, 2)
+    );
     console.log('✓ Empty manifests generated');
     process.exit(0);
   }
@@ -332,6 +336,19 @@ function main() {
     JSON.stringify(metadata, null, 2)
   );
   console.log(`  ✓ metadata.json  (${Object.keys(metadata).length} pages)`);
+
+  const buildInfo = {
+    generatedAt: new Date().toISOString(),
+    totalFiles: fileCount,
+    totalDirectories: dirCount,
+    repo: REPO_SLUG || null,
+    branch: BRANCH,
+  };
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, 'build-info.json'),
+    JSON.stringify(buildInfo, null, 2)
+  );
+  console.log(`  ✓ build-info.json`);
 
   console.log('\n─'.repeat(50));
   console.log('✅ Content generation complete!\n');

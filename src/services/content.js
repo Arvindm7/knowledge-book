@@ -135,3 +135,18 @@ export function getLocalTree() {
   walk(CONTENT_DIR, CONTENT_DIR);
   return results;
 }
+
+/**
+ * Returns build info (generation timestamp, counts) if available.
+ *
+ * @returns {{ generatedAt: string, totalFiles: number, totalDirectories: number, repo: string|null, branch: string } | null}
+ */
+export function getLocalBuildInfo() {
+  const infoPath = path.join(GENERATED_DIR, 'build-info.json');
+  if (!fs.existsSync(infoPath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(infoPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}

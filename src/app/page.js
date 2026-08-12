@@ -1,7 +1,7 @@
 import { PageLayout } from '@/components/layout';
 import { HomeContent } from '@/components/home';
 import { getDocsNavigationTree, findFirstPageInDir } from '@/services/docs';
-import { hasLocalContent, getLocalMetadata } from '@/services/content';
+import { hasLocalContent, getLocalMetadata, getLocalBuildInfo } from '@/services/content';
 
 /**
  * Gathers homepage data from the content manifests or navigation tree.
@@ -60,6 +60,13 @@ async function getHomePageData() {
       totalWords = metaEntries.reduce((sum, m) => sum + (m.readingTimeMinutes || 0) * 200, 0);
     }
 
+    // Get last sync timestamp from build info
+    let lastSynced = null;
+    const buildInfo = getLocalBuildInfo();
+    if (buildInfo?.generatedAt) {
+      lastSynced = buildInfo.generatedAt;
+    }
+
     // Count total unique topics (tags) if metadata available
     let totalTopics = 0;
     if (hasLocalContent()) {
@@ -85,6 +92,7 @@ async function getHomePageData() {
         totalCategories: categories.length,
         totalWords: totalWords || allPages.length * 800,
         totalTopics,
+        lastSynced,
       },
     };
   } catch {

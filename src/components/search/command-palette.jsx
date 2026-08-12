@@ -36,15 +36,26 @@ export function CommandPalette({ open, onOpenChange }) {
     if (pagefindRef.current) return;
 
     try {
-      const pagefind = await import(
-        /* webpackIgnore: true */
-        '/pagefind/pagefind.js'
-      );
-      await pagefind.options({
-        excerptLength: 20,
-      });
-      await pagefind.init();
-      pagefindRef.current = pagefind;
+      const paths = ['/pagefind/pagefind.js', '/_pagefind/pagefind.js'];
+
+      for (const path of paths) {
+        try {
+          const pagefind = await import(
+            /* webpackIgnore: true */
+            path
+          );
+          await pagefind.options({
+            excerptLength: 20,
+          });
+          await pagefind.init();
+          pagefindRef.current = pagefind;
+          return;
+        } catch {
+          // Try next path
+        }
+      }
+      // None of the paths worked
+      pagefindRef.current = null;
     } catch {
       // Pagefind not available (dev mode or not yet indexed)
       pagefindRef.current = null;
@@ -223,7 +234,7 @@ export function CommandPalette({ open, onOpenChange }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search documentation..."
-            className="flex-1 bg-transparent py-4 text-base text-foreground outline-none placeholder:text-muted-foreground"
+            className="flex-1 border-none bg-transparent py-4 text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-0 focus:outline-none"
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"

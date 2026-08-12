@@ -80,6 +80,18 @@ function SparklesIcon(props) {
   );
 }
 
+function SyncIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M21.015 4.356v4.992"
+      />
+    </svg>
+  );
+}
+
 function ArrowRightIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
@@ -251,7 +263,18 @@ export function HomeContent({ categories, recentPages, stats }) {
             {[
               { label: 'Total Notes', value: stats.totalPages, icon: BookIcon },
               { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },
-              { label: 'Words Written', value: stats.totalWords, suffix: '', icon: ChartIcon },
+              {
+                label: 'Last Synced',
+                value: stats.lastSynced
+                  ? new Date(stats.lastSynced).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : 'Not synced',
+                isText: true,
+                icon: SyncIcon,
+              },
               { label: 'Topics Covered', value: stats.totalTopics, icon: SparklesIcon },
             ].map((stat) => (
               <div
@@ -263,7 +286,11 @@ export function HomeContent({ categories, recentPages, stats }) {
                   aria-hidden="true"
                 />
                 <div className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  <CountUpInner target={stat.value} duration={1.5} suffix={stat.suffix || ''} />
+                  {stat.isText ? (
+                    <span className="text-lg sm:text-xl">{stat.value}</span>
+                  ) : (
+                    <CountUpInner target={stat.value} duration={1.5} suffix={stat.suffix || ''} />
+                  )}
                 </div>
                 <div className="mt-1 text-xs font-medium text-muted-foreground">{stat.label}</div>
               </div>

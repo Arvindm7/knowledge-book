@@ -232,12 +232,12 @@ html {
   padding: 0.125rem 0.25rem;
 }
 
-/* Line numbers */
-[data-rehype-pretty-code-figure] code {
+/* Line numbers (block code only — not inline code) */
+[data-rehype-pretty-code-figure] pre code {
   counter-reset: line;
 }
 
-[data-rehype-pretty-code-figure] code > [data-line]::before {
+[data-rehype-pretty-code-figure] pre code > [data-line]::before {
   counter-increment: line;
   content: counter(line);
   display: inline-block;
@@ -248,8 +248,8 @@ html {
   font-size: 0.8125rem;
 }
 
-/* Inline code within prose */
-[data-rehype-pretty-code-figure] code[data-line-numbers-max-digits='1'] > [data-line]::before {
+/* Narrower line number column for single-digit counts */
+[data-rehype-pretty-code-figure] pre code[data-line-numbers-max-digits='1'] > [data-line]::before {
   width: 1rem;
 }
 
@@ -369,4 +369,17 @@ html {
 
 .mdx-content > *:last-child {
   margin-bottom: 0;
+}
+
+/*
+ * ==========================================================================
+ * Command Palette — Remove default input border
+ * ==========================================================================
+ * Tailwind v4 base styles can add borders to input elements. Override
+ * to ensure a clean, borderless search input inside the palette modal.
+ */
+[role='dialog'] input[type='text'] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }

@@ -18,7 +18,7 @@ export const siteConfig = Object.freeze({
 
   /** External links (footer, social, etc.). */
   links: {
-    github: 'https://github.com',
+    github: `https://github.com/${process.env.NEXT_PUBLIC_KNOWLEDGE_BASE_REPO || 'username/knowledge-base'}`,
     knowledgeBase: process.env.NEXT_PUBLIC_KNOWLEDGE_BASE_REPO || 'username/knowledge-base',
   },
 
