@@ -174,25 +174,25 @@ html {
 [data-rehype-pretty-code-figure] {
   position: relative;
   margin: 1.5rem 0;
-  /* Prevent overflow on mobile */
+  /* Let the pre inside handle its own overflow */
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
 }
 
 [data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
   border-radius: 0.5rem;
   border: 1px solid hsl(var(--border));
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.7;
-  /* Mobile overflow fix */
+  /* Constrain width to parent — never overflow */
+  width: 100%;
   max-width: 100%;
-  min-width: 0;
   box-sizing: border-box;
-  word-break: normal;
   white-space: pre;
+  word-break: normal;
 }
 
 /* Light/dark theme backgrounds */
@@ -391,9 +391,11 @@ html {
     'calt' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent code blocks from overflowing on mobile */
-  overflow-x: hidden;
+  /* Hard-stop any overflow — pre scrolls internally */
+  overflow-x: clip;
   min-width: 0;
+  /* Ensure the content column never exceeds the viewport */
+  max-width: 100%;
 }
 
 .mdx-content > *:first-child {
@@ -402,6 +404,12 @@ html {
 
 .mdx-content > *:last-child {
   margin-bottom: 0;
+}
+
+/* Doc article — flex child must not grow past its container */
+article[data-pagefind-body] {
+  min-width: 0;
+  overflow-x: clip;
 }
 
 /*
