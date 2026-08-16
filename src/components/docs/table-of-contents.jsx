@@ -110,14 +110,10 @@ export function TableOfContents({ headings, className }) {
   if (!headings.length) return null;
 
   return (
-    <nav
-      aria-label="Table of contents"
-      className={cn('flex flex-col', className)}
-      style={{ maxHeight: 'calc(100vh - 5rem)' }}
-    >
-      {/* Pinned header — always visible, never scrolls */}
-      <div className="shrink-0">
-        <div className="mb-3 flex items-center justify-between">
+    <nav aria-label="Table of contents" className={cn(className)}>
+      {/* Sticky header — pins to top of aside as list scrolls underneath */}
+      <div className="sticky top-0 z-10 bg-background pb-3 pt-0">
+        <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             On this page
           </p>
@@ -125,9 +121,8 @@ export function TableOfContents({ headings, className }) {
             {Math.round(readProgress * 100)}%
           </span>
         </div>
-
         {/* Read progress bar */}
-        <div className="mb-4 h-0.5 w-full overflow-hidden rounded-full bg-border/40">
+        <div className="h-0.5 w-full overflow-hidden rounded-full bg-border/40">
           <motion.div
             className="h-full rounded-full bg-primary"
             style={{ width: `${readProgress * 100}%` }}
@@ -136,62 +131,60 @@ export function TableOfContents({ headings, className }) {
         </div>
       </div>
 
-      {/* Scrollable heading list */}
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
-        <div className="relative" ref={listRef}>
-          {/* Track line */}
-          <div className="absolute left-0 top-0 bottom-0 w-px bg-border/40" />
+      {/* Heading list — scrolls within the aside */}
+      <div className="relative mt-2" ref={listRef}>
+        {/* Track line */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-border/40" />
 
-          {/* Animated active indicator */}
-          <motion.div
-            className="absolute left-0 w-0.5 rounded-full bg-primary"
-            animate={{
-              top: indicatorStyle.top,
-              height: indicatorStyle.height,
-              opacity: indicatorStyle.opacity,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 350,
-              damping: 30,
-              mass: 0.8,
-            }}
-          />
+        {/* Animated active indicator */}
+        <motion.div
+          className="absolute left-0 w-0.5 rounded-full bg-primary"
+          animate={{
+            top: indicatorStyle.top,
+            height: indicatorStyle.height,
+            opacity: indicatorStyle.opacity,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 350,
+            damping: 30,
+            mass: 0.8,
+          }}
+        />
 
-          <ul className="space-y-0.5 pl-3">
-            {headings.map((heading) => {
-              const isActive = activeId === heading.id;
-              return (
-                <li key={heading.id}>
-                  <a
-                    ref={(el) => {
-                      if (el) itemRefs.current[heading.id] = el;
-                    }}
-                    href={`#${heading.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const el = document.getElementById(heading.id);
-                      if (el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        window.history.pushState(null, '', `#${heading.id}`);
-                      }
-                    }}
-                    className={cn(
-                      'block rounded-r-md py-1.5 text-[13px] leading-snug transition-all duration-200',
-                      heading.level === 3 && 'pl-3',
-                      heading.level === 4 && 'pl-6',
-                      isActive
-                        ? 'font-medium text-primary'
-                        : 'text-muted-foreground/70 hover:text-foreground'
-                    )}
-                  >
-                    {heading.text}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <ul className="space-y-0.5 pl-3">
+          {headings.map((heading) => {
+            const isActive = activeId === heading.id;
+            return (
+              <li key={heading.id}>
+                <a
+                  ref={(el) => {
+                    if (el) itemRefs.current[heading.id] = el;
+                  }}
+                  href={`#${heading.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const el = document.getElementById(heading.id);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      window.history.pushState(null, '', `#${heading.id}`);
+                    }
+                  }}
+                  className={cn(
+                    'block rounded-r-md py-1.5 text-[13px] leading-snug transition-all duration-200',
+                    heading.level === 3 && 'pl-3',
+                    heading.level === 4 && 'pl-6',
+                    isActive
+                      ? 'font-medium text-primary'
+                      : 'text-muted-foreground/70 hover:text-foreground'
+                  )}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </nav>
   );
