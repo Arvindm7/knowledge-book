@@ -33,10 +33,11 @@ export function ResizableToc({ headings }) {
         onResize={setTocWidth}
         className="hidden xl:flex"
       />
-      <aside className="hidden shrink-0 xl:block" style={{ width: tocWidth }}>
-        <div className="sticky top-20">
-          <TableOfContents headings={headings} />
-        </div>
+      <aside
+        className="sticky top-20 hidden shrink-0 xl:block"
+        style={{ width: tocWidth, maxHeight: 'calc(100vh - 5rem)', overflowY: 'auto' }}
+      >
+        <TableOfContents headings={headings} />
       </aside>
     </>
   );

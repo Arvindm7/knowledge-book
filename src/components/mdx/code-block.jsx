@@ -35,7 +35,7 @@ export function CodeBlock({ className, children, ...props }) {
   }, [updateCodeText]);
 
   return (
-    <div className="group relative my-6">
+    <div className="group relative my-6 w-full min-w-0">
       {/* Language label */}
       {language && (
         <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-border/60 bg-muted/40 px-4 py-2">
@@ -52,14 +52,15 @@ export function CodeBlock({ className, children, ...props }) {
         />
       </div>
 
-      {/* Code content */}
+      {/* Code content — scrolls horizontally, never expands past parent */}
       <pre
         ref={preRef}
         className={cn(
-          'overflow-x-auto border border-border/60 p-4 text-sm leading-relaxed',
+          'w-full overflow-x-auto border border-border/60 p-4 text-sm leading-relaxed',
           language ? 'rounded-b-lg rounded-t-none border-t-0' : 'rounded-lg',
           className
         )}
+        style={{ WebkitOverflowScrolling: 'touch' }}
         {...props}
       >
         {children}

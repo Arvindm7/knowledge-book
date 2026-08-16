@@ -174,9 +174,7 @@ html {
 [data-rehype-pretty-code-figure] {
   position: relative;
   margin: 1.5rem 0;
-  max-width: 100%;
   min-width: 0;
-  overflow: visible; /* let the border show fully */
 }
 
 [data-rehype-pretty-code-figure] pre {
@@ -187,13 +185,8 @@ html {
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.7;
-  /* Never wider than its container */
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
   white-space: pre;
   word-break: normal;
-  display: block;
 }
 
 /* Light/dark theme backgrounds */
@@ -393,9 +386,6 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-width: 0;
-  max-width: 100%;
-  /* Clip anything that escapes — pre scrolls inside its own border */
-  overflow-x: hidden;
 }
 
 .mdx-content > *:first-child {
@@ -406,12 +396,10 @@ html {
   margin-bottom: 0;
 }
 
-/* Doc article — flex child must not grow past its container */
+/* Doc article — flex child, must not grow past flex container */
 article[data-pagefind-body] {
   min-width: 0;
-  overflow-x: clip;
 }
-
 /*
  * ==========================================================================
  * Command Palette — Remove default input border
