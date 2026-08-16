@@ -296,8 +296,8 @@ export function HomeContent({ categories, recentPages, stats }) {
 
         {/* Stats Bar */}
         <FadeIn delay={0.45} className="mt-16">
-          <div className="mx-auto max-w-3xl rounded-2xl border border-border/50 bg-card/40 px-6 py-6 shadow-sm backdrop-blur-sm sm:px-10 sm:py-8">
-            <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-5 sm:justify-between">
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 bg-card/40 shadow-sm backdrop-blur-sm">
+            <div className="grid grid-cols-4 divide-x divide-border/40">
               {[
                 { label: 'Notes', value: stats.totalPages, icon: BookIcon },
                 { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },
@@ -313,27 +313,25 @@ export function HomeContent({ categories, recentPages, stats }) {
                   icon: SyncIcon,
                 },
                 { label: 'Topics', value: stats.totalTopics, icon: SparklesIcon },
-              ].map((stat, i) => (
-                <div key={stat.label} className="flex items-center gap-3">
-                  {i > 0 && (
-                    <div className="hidden h-10 w-px bg-border/50 sm:block" aria-hidden="true" />
-                  )}
-                  <div className="flex items-center gap-3">
-                    {/* Icon — desktop only */}
-                    <div className="hidden shrink-0 rounded-lg bg-primary/5 p-2 sm:block">
-                      <stat.icon className="h-5 w-5 text-primary/70" aria-hidden="true" />
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="flex flex-col items-center justify-center px-2 py-4 text-center sm:flex-row sm:items-center sm:gap-3 sm:px-6 sm:py-6 sm:text-left"
+                >
+                  {/* Icon — desktop only */}
+                  <div className="hidden shrink-0 rounded-lg bg-primary/5 p-2 sm:block">
+                    <stat.icon className="h-5 w-5 text-primary/70" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold leading-none tracking-tight text-foreground sm:text-2xl">
+                      {stat.isText ? (
+                        <span className="text-sm font-semibold sm:text-lg">{stat.value}</span>
+                      ) : (
+                        <CountUpInner target={stat.value} duration={1.5} />
+                      )}
                     </div>
-                    <div>
-                      <div className="text-xl font-bold leading-none tracking-tight text-foreground sm:text-2xl">
-                        {stat.isText ? (
-                          <span className="text-base font-semibold sm:text-lg">{stat.value}</span>
-                        ) : (
-                          <CountUpInner target={stat.value} duration={1.5} />
-                        )}
-                      </div>
-                      <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
-                        {stat.label}
-                      </div>
+                    <div className="mt-1 text-[9px] font-medium uppercase tracking-wider text-muted-foreground/60 sm:text-[11px]">
+                      {stat.label}
                     </div>
                   </div>
                 </div>
