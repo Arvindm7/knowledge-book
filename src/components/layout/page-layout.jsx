@@ -68,7 +68,7 @@ export function PageLayout({ children, showSidebar = true, navItems, className }
 
         <main
           className={cn(
-            'flex-1 min-w-0 px-4 py-8 sm:px-6 lg:px-8',
+            'flex-1 min-w-0 overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8',
             showSidebar && 'lg:pl-6',
             className
           )}

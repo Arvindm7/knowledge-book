@@ -297,7 +297,7 @@ export function HomeContent({ categories, recentPages, stats }) {
         {/* Stats Bar */}
         <FadeIn delay={0.45} className="mt-16">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 bg-card/40 shadow-sm backdrop-blur-sm">
-            <div className="grid grid-cols-4 divide-x divide-border/40">
+            <div className="grid grid-cols-4">
               {[
                 { label: 'Notes', value: stats.totalPages, icon: BookIcon },
                 { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },

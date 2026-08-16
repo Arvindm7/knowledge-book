@@ -174,25 +174,26 @@ html {
 [data-rehype-pretty-code-figure] {
   position: relative;
   margin: 1.5rem 0;
-  /* Let the pre inside handle its own overflow */
   max-width: 100%;
   min-width: 0;
+  overflow: visible; /* let the border show fully */
 }
 
 [data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
   border-radius: 0.5rem;
   border: 1px solid hsl(var(--border));
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.7;
-  /* Constrain width to parent — never overflow */
+  /* Never wider than its container */
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   white-space: pre;
   word-break: normal;
+  display: block;
 }
 
 /* Light/dark theme backgrounds */
@@ -391,11 +392,10 @@ html {
     'calt' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Hard-stop any overflow — pre scrolls internally */
-  overflow-x: clip;
   min-width: 0;
-  /* Ensure the content column never exceeds the viewport */
   max-width: 100%;
+  /* Clip anything that escapes — pre scrolls inside its own border */
+  overflow-x: hidden;
 }
 
 .mdx-content > *:first-child {
