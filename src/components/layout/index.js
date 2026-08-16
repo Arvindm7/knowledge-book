@@ -7,3 +7,4 @@ export { MobileSidebar } from './mobile-sidebar';
 export { Footer } from './footer';
 export { PageLayout } from './page-layout';
 export { ResizeHandle } from './resize-handle';
+export { BookmarksPanel, BookmarksTrigger } from './bookmarks-panel';

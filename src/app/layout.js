@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google';
 import { Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { SearchProvider } from '@/components/search';
+import { BookmarksPanelProvider } from '@/providers/bookmarks-panel-provider';
 import { siteConfig } from '@/config/site';
 import './globals.css';
 import 'katex/dist/katex.min.css';
@@ -48,7 +49,9 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <SearchProvider>{children}</SearchProvider>
+          <SearchProvider>
+            <BookmarksPanelProvider>{children}</BookmarksPanelProvider>
+          </SearchProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -12,6 +12,7 @@ import { Breadcrumbs } from '@/components/docs/breadcrumbs';
 import { DocPagination } from '@/components/docs/doc-pagination';
 import { DocMeta } from '@/components/docs/doc-meta';
 import { BookmarkButton } from '@/components/docs/bookmark-button';
+import { SwipeNavigation } from '@/components/docs/swipe-navigation';
 
 /**
  * Allow pages not in generateStaticParams to be rendered dynamically.
@@ -147,48 +148,55 @@ export default async function DocPage({ params }) {
 
   return (
     <div className="flex gap-10">
-      {/* Main content column */}
-      <article className="min-w-0 flex-1" data-pagefind-body>
-        {/* Hidden metadata for Pagefind indexing */}
-        {doc.frontmatter.tags?.length > 0 && (
-          <span data-pagefind-meta={`tags:${doc.frontmatter.tags.join(', ')}`} className="hidden" />
-        )}
-
-        {/* Breadcrumbs */}
-        <Breadcrumbs items={doc.breadcrumbs} />
-
-        {/* Page header */}
-        <header className="mb-8">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              {doc.title}
-            </h1>
-            <BookmarkButton slug={slug} title={doc.title} />
-          </div>
-
-          {doc.description && (
-            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{doc.description}</p>
+      {/* Main content column — wrapped with swipe navigation for mobile */}
+      <SwipeNavigation prev={doc.prev} next={doc.next}>
+        <article className="min-w-0 flex-1" data-pagefind-body>
+          {/* Hidden metadata for Pagefind indexing */}
+          {doc.frontmatter.tags?.length > 0 && (
+            <span
+              data-pagefind-meta={`tags:${doc.frontmatter.tags.join(', ')}`}
+              className="hidden"
+            />
           )}
 
-          {/* Metadata bar */}
-          <DocMeta
-            readingTime={doc.readingTimeMinutes}
-            lastUpdated={doc.lastUpdated}
-            difficulty={doc.frontmatter.difficulty}
-            tags={doc.frontmatter.tags}
-            className="mt-4"
-          />
-        </header>
+          {/* Breadcrumbs */}
+          <Breadcrumbs items={doc.breadcrumbs} />
 
-        {/* Separator */}
-        <hr className="mb-8 border-border/50" />
+          {/* Page header */}
+          <header className="mb-8">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                {doc.title}
+              </h1>
+              <BookmarkButton slug={slug} title={doc.title} />
+            </div>
 
-        {/* MDX content */}
-        <MdxContent source={doc.rawContent} />
+            {doc.description && (
+              <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+                {doc.description}
+              </p>
+            )}
 
-        {/* Pagination */}
-        <DocPagination prev={doc.prev} next={doc.next} />
-      </article>
+            {/* Metadata bar */}
+            <DocMeta
+              readingTime={doc.readingTimeMinutes}
+              lastUpdated={doc.lastUpdated}
+              difficulty={doc.frontmatter.difficulty}
+              tags={doc.frontmatter.tags}
+              className="mt-4"
+            />
+          </header>
+
+          {/* Separator */}
+          <hr className="mb-8 border-border/50" />
+
+          {/* MDX content */}
+          <MdxContent source={doc.rawContent} />
+
+          {/* Pagination */}
+          <DocPagination prev={doc.prev} next={doc.next} />
+        </article>
+      </SwipeNavigation>
 
       {/* Table of Contents — resizable right rail */}
       <ResizableToc headings={headings} />
