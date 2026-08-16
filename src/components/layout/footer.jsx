@@ -14,11 +14,11 @@ export function Footer({ className }) {
 
   const footerSections = [
     {
-      title: 'Documentation',
+      title: 'Navigation',
       links: [
-        { label: 'Getting Started', href: '/docs' },
-        { label: 'Guides', href: '/docs' },
-        { label: 'API Reference', href: '/docs' },
+        { label: 'Home', href: '/' },
+        { label: 'Browse Docs', href: '/docs' },
+        { label: 'About', href: '/about' },
       ],
     },
     {
@@ -30,10 +30,14 @@ export function Footer({ className }) {
       ],
     },
     {
-      title: 'More',
+      title: 'Content',
       links: [
-        { label: 'About', href: '/' },
-        { label: 'Changelog', href: '/' },
+        {
+          label: 'Knowledge Base',
+          href: `https://github.com/${siteConfig.links.knowledgeBase}`,
+          external: true,
+        },
+        { label: 'Star on GitHub', href: siteConfig.links.github, external: true },
       ],
     },
   ];

@@ -75,13 +75,14 @@ export default function AboutPage() {
             <h2 className="text-xl font-semibold text-foreground">Tech Stack</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {[
-                'Next.js 15',
+                'Next.js 16',
                 'React 19',
                 'Tailwind CSS',
                 'MDX',
                 'Shiki',
                 'Pagefind',
                 'Framer Motion',
+                'KaTeX',
                 'Vercel',
               ].map((tech) => (
                 <span

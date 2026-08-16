@@ -6,6 +6,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { siteConfig } from '@/config/site';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useSearch } from '@/components/search/search-provider';
+import { useBookmarksPanel } from '@/providers/bookmarks-panel-provider';
+import { useBookmarks } from '@/hooks/use-bookmarks';
 
 /**
  * MobileSidebar — Sheet-based slide-out navigation for mobile and tablet.
@@ -18,6 +21,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
  */
 export function MobileSidebar({ open, onOpenChange, navItems = [] }) {
   const pathname = usePathname();
+  const { openSearch } = useSearch();
+  const { open: openBookmarks } = useBookmarksPanel();
+  const { bookmarks } = useBookmarks();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -44,6 +50,34 @@ export function MobileSidebar({ open, onOpenChange, navItems = [] }) {
           </SheetTitle>
         </SheetHeader>
 
+        {/* Search button */}
+        <div className="border-b border-border/40 px-4 py-3">
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              openSearch();
+            }}
+            className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Search documentation"
+          >
+            <svg
+              className="h-4 w-4 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            Search docs...
+          </button>
+        </div>
+
         {/* Primary nav links */}
         <div className="border-b border-border/40 px-4 py-3">
           <nav className="space-y-1" aria-label="Primary navigation">
@@ -68,6 +102,32 @@ export function MobileSidebar({ open, onOpenChange, navItems = [] }) {
             })}
           </nav>
         </div>
+
+        {/* Bookmarks shortcut */}
+        {bookmarks.length > 0 && (
+          <div className="border-b border-border/40 px-4 py-3">
+            <button
+              onClick={() => {
+                onOpenChange(false);
+                openBookmarks();
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+            >
+              <svg
+                className="h-4 w-4 text-amber-500"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1z" />
+              </svg>
+              Bookmarks
+              <span className="ml-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                {bookmarks.length}
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Docs navigation tree */}
         {navItems.length > 0 && (

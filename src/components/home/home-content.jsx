@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { siteConfig } from '@/config/site';
 import { useSearch } from '@/components/search/search-provider';
 import { useBookmarks } from '@/hooks/use-bookmarks';
+import { useBookmarksPanel } from '@/providers/bookmarks-panel-provider';
 import { FadeIn, FadeInStagger, FadeInStaggerItem, CountUpInner } from '@/components/common/motion';
 
 // ─── Icons (inline SVG for zero-dependency) ──────────────────────────────────
@@ -139,15 +140,24 @@ function SectionHeader({ icon: Icon, title, subtitle, action }) {
         </div>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {action && (
-        <Link
-          href={action.href}
-          className="hidden items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 sm:flex"
-        >
-          {action.label}
-          <ArrowRightIcon className="h-3.5 w-3.5" />
-        </Link>
-      )}
+      {action &&
+        (action.onClick ? (
+          <button
+            onClick={action.onClick}
+            className="hidden items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 sm:flex"
+          >
+            {action.label}
+            <ArrowRightIcon className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <Link
+            href={action.href}
+            className="hidden items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 sm:flex"
+          >
+            {action.label}
+            <ArrowRightIcon className="h-3.5 w-3.5" />
+          </Link>
+        ))}
     </div>
   );
 }
@@ -157,6 +167,7 @@ function SectionHeader({ icon: Icon, title, subtitle, action }) {
 export function HomeContent({ categories, recentPages, stats }) {
   const { openSearch } = useSearch();
   const { bookmarks } = useBookmarks();
+  const { open: onOpenBookmarks } = useBookmarksPanel();
   const [activeFeature, setActiveFeature] = useState(0);
 
   // Featured topics — static curated list (displayed as content on the homepage)
@@ -221,12 +232,12 @@ export function HomeContent({ categories, recentPages, stats }) {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       {/* ── HERO ── */}
       <section className="relative pb-20 pt-16 sm:pb-28 sm:pt-24">
-        {/* Subtle gradient background */}
+        {/* Subtle gradient background — invisible on mobile, subtle on desktop */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
           aria-hidden="true"
         >
-          <div className="absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute -top-24 left-1/2 hidden h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl sm:block" />
         </div>
 
         {/* Heading */}
@@ -286,7 +297,7 @@ export function HomeContent({ categories, recentPages, stats }) {
         {/* Stats Bar */}
         <FadeIn delay={0.45} className="mt-16">
           <div className="mx-auto max-w-3xl rounded-2xl border border-border/50 bg-card/40 px-6 py-6 shadow-sm backdrop-blur-sm sm:px-10 sm:py-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-5 sm:justify-between">
               {[
                 { label: 'Notes', value: stats.totalPages, icon: BookIcon },
                 { label: 'Categories', value: stats.totalCategories, icon: FolderIcon },
@@ -303,23 +314,24 @@ export function HomeContent({ categories, recentPages, stats }) {
                 },
                 { label: 'Topics', value: stats.totalTopics, icon: SparklesIcon },
               ].map((stat, i) => (
-                <div key={stat.label} className="flex items-center gap-4">
+                <div key={stat.label} className="flex items-center gap-3">
                   {i > 0 && (
                     <div className="hidden h-10 w-px bg-border/50 sm:block" aria-hidden="true" />
                   )}
                   <div className="flex items-center gap-3">
-                    <div className="hidden rounded-lg bg-primary/5 p-2 sm:block">
+                    {/* Icon — desktop only */}
+                    <div className="hidden shrink-0 rounded-lg bg-primary/5 p-2 sm:block">
                       <stat.icon className="h-5 w-5 text-primary/70" aria-hidden="true" />
                     </div>
                     <div>
-                      <div className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                      <div className="text-xl font-bold leading-none tracking-tight text-foreground sm:text-2xl">
                         {stat.isText ? (
                           <span className="text-base font-semibold sm:text-lg">{stat.value}</span>
                         ) : (
                           <CountUpInner target={stat.value} duration={1.5} />
                         )}
                       </div>
-                      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                      <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
                         {stat.label}
                       </div>
                     </div>
@@ -701,10 +713,15 @@ export function HomeContent({ categories, recentPages, stats }) {
               icon={BookmarkIcon}
               title="Your Bookmarks"
               subtitle="Pages you've saved for quick access"
+              action={
+                bookmarks.length > 3
+                  ? { label: `View all ${bookmarks.length}`, href: '#', onClick: onOpenBookmarks }
+                  : undefined
+              }
             />
           </FadeIn>
           <FadeInStagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {bookmarks.slice(0, 6).map((bm) => (
+            {bookmarks.slice(0, 3).map((bm) => (
               <FadeInStaggerItem key={bm.slug}>
                 <Link
                   href={`/docs/${bm.slug}`}
@@ -735,6 +752,20 @@ export function HomeContent({ categories, recentPages, stats }) {
               </FadeInStaggerItem>
             ))}
           </FadeInStagger>
+          {bookmarks.length > 3 && (
+            <FadeIn delay={0.2} className="mt-4 text-center">
+              <button
+                onClick={onOpenBookmarks}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2 text-sm font-medium text-amber-600 transition-all hover:border-amber-500/40 hover:bg-amber-500/10 dark:text-amber-400"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1z" />
+                </svg>
+                View all {bookmarks.length} bookmarks
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </button>
+            </FadeIn>
+          )}
         </section>
       )}
 

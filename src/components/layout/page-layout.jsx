@@ -7,6 +7,8 @@ import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { Footer } from './footer';
 import { ResizeHandle, useResizableWidth } from './resize-handle';
+import { BookmarksPanel } from './bookmarks-panel';
+import { useBookmarksPanel } from '@/providers/bookmarks-panel-provider';
 
 const LEFT_SIDEBAR_DEFAULT = 256; // 16rem = w-64
 const LEFT_SIDEBAR_MIN = 200;
@@ -27,6 +29,7 @@ const LEFT_SIDEBAR_MAX = 420;
  */
 export function PageLayout({ children, showSidebar = true, navItems, className }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isOpen: bookmarksOpen, open: openBookmarks, close: closeBookmarks } = useBookmarksPanel();
   const [sidebarWidth, setSidebarWidth] = useResizableWidth(
     LEFT_SIDEBAR_DEFAULT,
     'docs-sidebar-width'
@@ -34,10 +37,19 @@ export function PageLayout({ children, showSidebar = true, navItems, className }
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <Navbar onMobileMenuToggle={() => setMobileMenuOpen(true)} />
+      <Navbar
+        onMobileMenuToggle={() => setMobileMenuOpen(true)}
+        onBookmarksToggle={openBookmarks}
+      />
 
       {/* Mobile sidebar (Sheet) */}
       <MobileSidebar open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} navItems={navItems} />
+
+      {/* Bookmarks panel (Sheet, slides from right) */}
+      <BookmarksPanel
+        open={bookmarksOpen}
+        onOpenChange={(v) => (v ? openBookmarks() : closeBookmarks())}
+      />
 
       <div className="flex flex-1">
         {showSidebar && (
