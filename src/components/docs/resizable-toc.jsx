@@ -3,9 +3,9 @@
 import { ResizeHandle, useResizableWidth } from '@/components/layout/resize-handle';
 import { TableOfContents } from './table-of-contents';
 
-const TOC_DEFAULT_WIDTH = 192; // 12rem = w-48
-const TOC_MIN_WIDTH = 140;
-const TOC_MAX_WIDTH = 320;
+const TOC_DEFAULT_WIDTH = 220; // slightly wider for readability
+const TOC_MIN_WIDTH = 160;
+const TOC_MAX_WIDTH = 360;
 
 /**
  * ResizableToc — wraps the Table of Contents with a drag-to-resize handle.
@@ -33,10 +33,7 @@ export function ResizableToc({ headings }) {
         onResize={setTocWidth}
         className="hidden xl:flex"
       />
-      <aside
-        className="sticky top-20 hidden shrink-0 xl:block"
-        style={{ width: tocWidth, maxHeight: 'calc(100vh - 5rem)', overflowY: 'auto' }}
-      >
+      <aside className="sticky top-20 hidden shrink-0 xl:block" style={{ width: tocWidth }}>
         <TableOfContents headings={headings} />
       </aside>
     </>

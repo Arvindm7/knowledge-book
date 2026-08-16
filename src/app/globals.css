@@ -351,6 +351,15 @@ html {
   background-color: hsl(var(--muted-foreground) / 0.3);
 }
 
+/* Completely hide scrollbar (but keep scroll functionality) */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
 /*
  * ==========================================================================
  * Text Selection
