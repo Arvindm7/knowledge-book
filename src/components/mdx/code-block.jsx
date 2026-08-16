@@ -35,10 +35,15 @@ export function CodeBlock({ className, children, ...props }) {
   }, [updateCodeText]);
 
   return (
-    <div className="group relative my-6 w-full min-w-0">
+    <div
+      className={cn(
+        'group relative my-6 w-full min-w-0 border border-border/60',
+        language ? 'rounded-lg' : 'rounded-lg'
+      )}
+    >
       {/* Language label */}
       {language && (
-        <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-border/60 bg-muted/40 px-4 py-2">
+        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-2 rounded-t-lg">
           <span className="text-xs font-medium text-muted-foreground">{language}</span>
         </div>
       )}
@@ -56,8 +61,8 @@ export function CodeBlock({ className, children, ...props }) {
       <pre
         ref={preRef}
         className={cn(
-          'w-full overflow-x-auto border border-border/60 p-4 text-sm leading-relaxed',
-          language ? 'rounded-b-lg rounded-t-none border-t-0' : 'rounded-lg',
+          'w-full overflow-x-auto p-4 text-sm leading-relaxed',
+          language ? 'rounded-b-lg' : 'rounded-lg',
           className
         )}
         style={{ WebkitOverflowScrolling: 'touch' }}

@@ -175,13 +175,14 @@ html {
   position: relative;
   margin: 1.5rem 0;
   min-width: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
 }
 
 [data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 0.5rem;
-  border: 1px solid hsl(var(--border));
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.7;
@@ -202,8 +203,7 @@ html {
 
 /* Code block title (filename) */
 [data-rehype-pretty-code-title] {
-  border: 1px solid hsl(var(--border));
-  border-bottom: none;
+  border-bottom: 1px solid hsl(var(--border));
   border-radius: 0.5rem 0.5rem 0 0;
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;
