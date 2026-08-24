@@ -21,6 +21,9 @@ import { useTheme } from 'next-themes';
  * @param {string} props.chart - Mermaid diagram definition string.
  * @returns {React.ReactElement}
  */
+// Mermaid SVG text does not inherit font-size from CSS — must be set explicitly.
+const DIAGRAM_FONT_SIZE = 14;
+
 export function Mermaid({ chart }) {
   const containerRef = useRef(null);
   const reactId = useId();
@@ -38,14 +41,12 @@ export function Mermaid({ chart }) {
       startOnLoad: false,
       theme: mermaidTheme,
       securityLevel: 'loose',
-      fontFamily: 'inherit', // inherits from the container, which resets to text-sm
-      flowchart: {
-        htmlLabels: true,
-        curve: 'basis',
-      },
-      sequence: {
-        useMaxWidth: true,
-      },
+      fontFamily: 'inherit',
+      fontSize: DIAGRAM_FONT_SIZE,
+      flowchart: { htmlLabels: true, curve: 'basis', fontSize: DIAGRAM_FONT_SIZE },
+      sequence: { useMaxWidth: true, fontSize: DIAGRAM_FONT_SIZE },
+      classDiagram: { fontSize: DIAGRAM_FONT_SIZE },
+      er: { fontSize: DIAGRAM_FONT_SIZE },
     });
 
     let cancelled = false;
@@ -85,7 +86,7 @@ export function Mermaid({ chart }) {
   }, [chart, mermaidId, resolvedTheme]);
 
   return (
-    <figure className="mermaid-figure my-6 w-full text-sm">
+    <figure className="mermaid-figure my-6 w-full">
       {/* Loading skeleton */}
       {isLoading && !error && (
         <div className="flex h-32 items-center justify-center rounded-lg border border-border/60 bg-muted/30">
