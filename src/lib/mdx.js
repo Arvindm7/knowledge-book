@@ -14,6 +14,58 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeKatex from 'rehype-katex';
 import rehypePrettyCode from 'rehype-pretty-code';
+import { visit } from 'unist-util-visit';
+
+// ---------------------------------------------------------------------------
+// Custom Rehype Plugin: Mermaid
+// ---------------------------------------------------------------------------
+
+/**
+ * rehypeMermaid — intercepts ```mermaid code blocks before rehype-pretty-code
+ * and replaces them with a <Mermaid chart="..." /> MDX JSX element so the
+ * client-side Mermaid component can render the SVG diagram.
+ */
+function rehypeMermaid() {
+  return (tree) => {
+    visit(tree, 'element', (node, index, parent) => {
+      // We're looking for: <pre><code class="language-mermaid">...</code></pre>
+      if (node.tagName !== 'pre') return;
+
+      const codeNode = node.children?.find(
+        (child) =>
+          child.type === 'element' &&
+          child.tagName === 'code' &&
+          child.properties?.className?.includes('language-mermaid')
+      );
+
+      if (!codeNode) return;
+
+      // Extract the raw text content
+      const chart = codeNode.children
+        ?.filter((c) => c.type === 'text')
+        .map((c) => c.value)
+        .join('')
+        .trim();
+
+      if (!chart) return;
+
+      // Replace the <pre> node with a MDX JSX element: <Mermaid chart="..." />
+      parent.children[index] = {
+        type: 'mdxJsxFlowElement',
+        name: 'Mermaid',
+        attributes: [
+          {
+            type: 'mdxJsxAttribute',
+            name: 'chart',
+            value: chart,
+          },
+        ],
+        children: [],
+        data: { _mdxExplicitJsx: true },
+      };
+    });
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Plugin Configuration
@@ -71,7 +123,8 @@ export function getRehypePlugins() {
     rehypeSlug, // Add `id` attributes to headings
     [rehypeAutolinkHeadings, autolinkHeadingsOptions], // Wrap headings in anchor links
     rehypeKatex, // Render math as KaTeX HTML
-    [rehypePrettyCode, prettyCodeOptions], // Shiki syntax highlighting
+    rehypeMermaid, // Convert ```mermaid blocks → <Mermaid chart="..." /> BEFORE syntax highlighting
+    [rehypePrettyCode, prettyCodeOptions], // Shiki syntax highlighting (skips mermaid blocks)
   ];
 }
 
