@@ -23,11 +23,12 @@ const LEFT_SIDEBAR_MAX = 420;
  * @param {object} props
  * @param {React.ReactNode} props.children - Page content.
  * @param {boolean} [props.showSidebar=true] - Whether to show the sidebar.
+ * @param {boolean} [props.wide=false] - When true, removes the inner max-width cap.
  * @param {Array} [props.navItems] - Navigation tree for sidebar.
  * @param {string} [props.className] - Additional CSS for main content.
  * @returns {React.ReactElement}
  */
-export function PageLayout({ children, showSidebar = true, navItems, className }) {
+export function PageLayout({ children, showSidebar = true, wide = false, navItems, className }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isOpen: bookmarksOpen, open: openBookmarks, close: closeBookmarks } = useBookmarksPanel();
   const [sidebarWidth, setSidebarWidth] = useResizableWidth(
@@ -73,7 +74,7 @@ export function PageLayout({ children, showSidebar = true, navItems, className }
             className
           )}
         >
-          <div className="mx-auto max-w-5xl">{children}</div>
+          <div className={cn(!wide && 'mx-auto max-w-5xl')}>{children}</div>
         </main>
       </div>
 

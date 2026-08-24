@@ -31,7 +31,7 @@ export default async function DocsLayout({ children }) {
   }
 
   return (
-    <PageLayout showSidebar={true} navItems={navItems}>
+    <PageLayout showSidebar={true} wide={true} navItems={navItems}>
       {children}
     </PageLayout>
   );

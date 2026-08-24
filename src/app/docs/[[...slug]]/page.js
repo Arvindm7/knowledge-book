@@ -148,7 +148,7 @@ export default async function DocPage({ params }) {
   return (
     <div className="flex gap-10">
       {/* Main content column */}
-      <article className="min-w-0 flex-1" data-pagefind-body>
+      <article className="min-w-0 flex-1 max-w-4xl" data-pagefind-body>
         {/* Hidden metadata for Pagefind indexing */}
         {doc.frontmatter.tags?.length > 0 && (
           <span data-pagefind-meta={`tags:${doc.frontmatter.tags.join(', ')}`} className="hidden" />
