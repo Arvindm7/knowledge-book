@@ -18,7 +18,7 @@ import { motion } from 'framer-motion';
  * @param {string} [props.className]
  * @returns {React.ReactElement | null}
  */
-export function TableOfContents({ headings, className }) {
+export function TableOfContents({ headings, className, hideTitle = false }) {
   const [activeId, setActiveId] = useState('');
   const [readProgress, setReadProgress] = useState(0);
   const observerRef = useRef(null);
@@ -112,24 +112,37 @@ export function TableOfContents({ headings, className }) {
   return (
     <nav aria-label="Table of contents" className={cn(className)}>
       {/* Sticky header — pins to top of aside as list scrolls underneath */}
-      <div className="sticky top-0 z-10 bg-background pb-3 pt-0">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            On this page
-          </p>
-          <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50">
-            {Math.round(readProgress * 100)}%
-          </span>
+      {!hideTitle && (
+        <div className="sticky top-0 z-10 bg-background pb-3 pt-0">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              On this page
+            </p>
+            <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50">
+              {Math.round(readProgress * 100)}%
+            </span>
+          </div>
+          {/* Read progress bar */}
+          <div className="h-0.5 w-full overflow-hidden rounded-full bg-border/40">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${readProgress * 100}%` }}
+              transition={{ duration: 0.1 }}
+            />
+          </div>
         </div>
-        {/* Read progress bar */}
-        <div className="h-0.5 w-full overflow-hidden rounded-full bg-border/40">
+      )}
+
+      {/* Progress bar shown inline when title is hidden (collapsed header) */}
+      {hideTitle && (
+        <div className="mb-2 h-0.5 w-full overflow-hidden rounded-full bg-border/40">
           <motion.div
             className="h-full rounded-full bg-primary"
             style={{ width: `${readProgress * 100}%` }}
             transition={{ duration: 0.1 }}
           />
         </div>
-      </div>
+      )}
 
       {/* Heading list — scrolls within the aside */}
       <div className="relative mt-2" ref={listRef}>

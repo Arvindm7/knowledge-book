@@ -61,8 +61,16 @@ export function Mermaid({ chart }) {
         }
         const { svg } = await mermaid.render(mermaidId, chart);
         if (!cancelled && containerRef.current) {
-          containerRef.current.innerHTML = svg;
-          // Make SVG responsive
+          // Inject a <style> into the SVG to enforce font size.
+          // Mermaid v11 ignores the fontSize config for certain diagram types,
+          // so post-processing the SVG string is the only reliable approach.
+          const fontStyle = `<style>
+            text, .label, .nodeLabel, .edgeLabel, .cluster-label,
+            .node text, .edgeTerminals text { font-size: ${DIAGRAM_FONT_SIZE}px !important; }
+          </style>`;
+          const styledSvg = svg.replace(/(<svg[^>]*>)/, `$1${fontStyle}`);
+
+          containerRef.current.innerHTML = styledSvg;
           const svgEl = containerRef.current.querySelector('svg');
           if (svgEl) {
             svgEl.style.maxWidth = '100%';
