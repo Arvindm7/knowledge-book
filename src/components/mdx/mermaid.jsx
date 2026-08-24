@@ -38,7 +38,7 @@ export function Mermaid({ chart }) {
       startOnLoad: false,
       theme: mermaidTheme,
       securityLevel: 'loose',
-      fontFamily: 'inherit',
+      fontFamily: 'inherit', // inherits from the container, which resets to text-sm
       flowchart: {
         htmlLabels: true,
         curve: 'basis',
@@ -85,7 +85,7 @@ export function Mermaid({ chart }) {
   }, [chart, mermaidId, resolvedTheme]);
 
   return (
-    <figure className="mermaid-figure my-6 w-full">
+    <figure className="mermaid-figure my-6 w-full text-sm">
       {/* Loading skeleton */}
       {isLoading && !error && (
         <div className="flex h-32 items-center justify-center rounded-lg border border-border/60 bg-muted/30">
