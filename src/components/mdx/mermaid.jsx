@@ -65,15 +65,8 @@ export function Mermaid({ chart }) {
           // Mermaid v11 ignores the fontSize config for certain diagram types,
           // so post-processing the SVG string is the only reliable approach.
           const fontStyle = `<style>
-            /* SVG text elements (most diagram types) */
             text, .label, .nodeLabel, .edgeLabel, .cluster-label,
             .node text, .edgeTerminals text { font-size: ${DIAGRAM_FONT_SIZE}px !important; }
-            /* HTML labels inside foreignObject (flowcharts with htmlLabels:true, <br/> nodes) */
-            foreignObject div, foreignObject span, foreignObject p,
-            foreignObject .nodeLabel, foreignObject .label {
-              font-size: ${DIAGRAM_FONT_SIZE}px !important;
-              line-height: 1.4;
-            }
           </style>`;
           const styledSvg = svg.replace(/(<svg[^>]*>)/, `$1${fontStyle}`);
 
