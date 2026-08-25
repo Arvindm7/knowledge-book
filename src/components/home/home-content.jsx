@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { siteConfig } from '@/config/site';
 import { useSearch } from '@/components/search/search-provider';
 import { useBookmarks } from '@/hooks/use-bookmarks';
+import { useRecentlyRead } from '@/hooks/use-recently-read';
 import { useBookmarksPanel } from '@/providers/bookmarks-panel-provider';
 import { FadeIn, FadeInStagger, FadeInStaggerItem, CountUpInner } from '@/components/common/motion';
 
@@ -164,9 +165,10 @@ function SectionHeader({ icon: Icon, title, subtitle, action }) {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function HomeContent({ categories, recentPages, stats }) {
+export function HomeContent({ categories, stats }) {
   const { openSearch } = useSearch();
   const { bookmarks } = useBookmarks();
+  const { entries: recentlyRead } = useRecentlyRead();
   const { open: onOpenBookmarks } = useBookmarksPanel();
   const [activeFeature, setActiveFeature] = useState(0);
 
@@ -775,19 +777,39 @@ export function HomeContent({ categories, recentPages, stats }) {
         </section>
       )}
 
-      {/* ── RECENTLY UPDATED ── */}
-      {recentPages.length > 0 && (
-        <section className="pb-16">
+      {/* ── RECENTLY READ ── */}
+      <section className="pb-16">
+        <FadeIn>
+          <SectionHeader
+            icon={ClockIcon}
+            title="Recently Read"
+            subtitle="Pages you've visited recently"
+            action={{ label: 'Browse all', href: '/docs' }}
+          />
+        </FadeIn>
+
+        {recentlyRead.length === 0 ? (
           <FadeIn>
-            <SectionHeader
-              icon={ClockIcon}
-              title="Recently Updated"
-              subtitle="Latest additions and revisions"
-              action={{ label: 'View all', href: '/docs' }}
-            />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 py-12 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+                <ClockIcon className="h-5 w-5 text-muted-foreground/50" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No pages read yet</p>
+              <p className="mt-1 text-xs text-muted-foreground/60">
+                Pages you open will appear here automatically.
+              </p>
+              <Link
+                href="/docs"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Start reading
+                <ArrowRightIcon className="h-3 w-3" />
+              </Link>
+            </div>
           </FadeIn>
+        ) : (
           <FadeInStagger className="space-y-2">
-            {recentPages.slice(0, 5).map((page) => (
+            {recentlyRead.slice(0, 5).map((page) => (
               <FadeInStaggerItem key={page.slug}>
                 <Link
                   href={`/docs/${page.slug}`}
@@ -798,26 +820,22 @@ export function HomeContent({ categories, recentPages, stats }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-medium text-foreground">{page.title}</h3>
-                    {page.description && (
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {page.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="hidden shrink-0 text-right sm:block">
-                    {page.readingTimeMinutes && (
-                      <span className="text-xs text-muted-foreground/60">
-                        {page.readingTimeMinutes} min read
-                      </span>
-                    )}
+                    <p className="mt-0.5 text-xs text-muted-foreground/60">
+                      {new Date(page.visitedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
                   </div>
                   <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                 </Link>
               </FadeInStaggerItem>
             ))}
           </FadeInStagger>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* ── CONTINUE READING (CTA) ── */}
       <section className="pb-20">

@@ -12,6 +12,7 @@ import { Breadcrumbs } from '@/components/docs/breadcrumbs';
 import { DocPagination } from '@/components/docs/doc-pagination';
 import { DocMeta } from '@/components/docs/doc-meta';
 import { BookmarkButton } from '@/components/docs/bookmark-button';
+import { PageTracker } from '@/components/docs/page-tracker';
 
 /**
  * Allow pages not in generateStaticParams to be rendered dynamically.
@@ -155,6 +156,9 @@ export default async function DocPage({ params }) {
       <div className="flex gap-10">
         {/* Main content column */}
         <article className="min-w-0 flex-1" data-pagefind-body>
+          {/* Record this page in the "Recently Read" localStorage list */}
+          <PageTracker slug={slug} title={doc.title} />
+
           {/* Hidden metadata for Pagefind indexing */}
           {doc.frontmatter.tags?.length > 0 && (
             <span

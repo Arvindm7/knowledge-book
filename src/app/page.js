@@ -5,7 +5,8 @@ import { hasLocalContent, getLocalMetadata, getLocalBuildInfo } from '@/services
 
 /**
  * Gathers homepage data from the content manifests or navigation tree.
- * Returns categories, recently updated pages, and aggregate statistics.
+ * Returns categories and aggregate statistics.
+ * Recently-read pages are tracked client-side via localStorage (useRecentlyRead hook).
  */
 async function getHomePageData() {
   try {
@@ -36,40 +37,14 @@ async function getHomePageData() {
     }
     collectPages(navTree);
 
-    // Get metadata for pages if available
-    let recentPages = [];
+    // Total reading time (from metadata if available, else estimate)
     let totalReadingMinutes = 0;
-
     if (hasLocalContent()) {
       const metadata = getLocalMetadata();
       const metaEntries = Object.values(metadata);
-
       if (metaEntries.length > 0) {
-        // Sort by lastUpdated for recent pages
-        recentPages = metaEntries
-          .filter((m) => m.lastUpdated)
-          .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated))
-          .slice(0, 5)
-          .map((m) => ({
-            slug: m.slug,
-            title: m.title,
-            description: m.description,
-            readingTimeMinutes: m.readingTimeMinutes,
-          }));
-
-        // Total reading time in minutes
         totalReadingMinutes = metaEntries.reduce((sum, m) => sum + (m.readingTimeMinutes || 0), 0);
       }
-    }
-
-    // Fallback: derive recent pages from nav tree when metadata is unavailable
-    if (recentPages.length === 0 && allPages.length > 0) {
-      recentPages = allPages.slice(0, 5).map((p) => ({
-        slug: p.slug,
-        title: p.title,
-        description: p.description || '',
-        readingTimeMinutes: null,
-      }));
     }
 
     // Get last sync timestamp from build info
@@ -81,14 +56,13 @@ async function getHomePageData() {
 
     return {
       categories,
-      recentPages,
       stats: {
         totalPages: allPages.length,
         totalCategories: categories.length,
         totalReadingHours:
           totalReadingMinutes > 0
             ? Math.round(totalReadingMinutes / 60)
-            : Math.round((allPages.length * 5) / 60), // rough fallback: ~5 min/page
+            : Math.round((allPages.length * 5) / 60),
         lastSynced,
       },
     };
@@ -96,7 +70,6 @@ async function getHomePageData() {
     // Fallback for empty/unreachable content
     return {
       categories: [],
-      recentPages: [],
       stats: {
         totalPages: 0,
         totalCategories: 0,
@@ -108,11 +81,11 @@ async function getHomePageData() {
 }
 
 export default async function HomePage() {
-  const { categories, recentPages, stats } = await getHomePageData();
+  const { categories, stats } = await getHomePageData();
 
   return (
     <PageLayout showSidebar={false}>
-      <HomeContent categories={categories} recentPages={recentPages} stats={stats} />
+      <HomeContent categories={categories} stats={stats} />
     </PageLayout>
   );
 }
