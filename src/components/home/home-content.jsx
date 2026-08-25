@@ -312,7 +312,15 @@ export function HomeContent({ categories, recentPages, stats }) {
                   isText: true,
                   icon: SyncIcon,
                 },
-                { label: 'Topics', value: stats.totalTopics, icon: SparklesIcon },
+                {
+                  label: 'Est. Read',
+                  value:
+                    stats.totalReadingHours > 0
+                      ? `${stats.totalReadingHours}h`
+                      : `${stats.totalPages * 5}m`,
+                  isText: true,
+                  icon: SparklesIcon,
+                },
               ].map((stat) => (
                 <div
                   key={stat.label}

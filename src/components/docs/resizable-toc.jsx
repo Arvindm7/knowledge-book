@@ -15,9 +15,13 @@ const COLLAPSED_KEY = 'docs-toc-collapsed';
  * and a collapse/expand toggle.
  *
  * When collapsed:
- * - The aside and resize handle are hidden.
- * - A small floating tab appears at the right edge so the user can re-open.
+ * - The aside and resize handle disappear completely (zero layout width).
+ * - A small tab is fixed to the right viewport edge so the user can re-open
+ *   from anywhere on the page without scrolling back to the top.
  * - Collapse state is persisted to localStorage.
+ *
+ * The collapse button inside the panel is sticky so it remains visible
+ * as the user scrolls through the TOC list.
  *
  * @param {object} props
  * @param {Array<{ id: string, text: string, level: number }>} props.headings
@@ -64,7 +68,7 @@ export function ResizableToc({ headings }) {
         />
       )}
 
-      {/* TOC aside — animates in/out */}
+      {/* TOC aside — animates in/out, takes up layout space only when expanded */}
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.aside
@@ -73,11 +77,12 @@ export function ResizableToc({ headings }) {
             animate={{ width: tocWidth, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
-            className="sticky top-20 hidden shrink-0 xl:block scrollbar-hide overflow-hidden"
-            style={{ maxHeight: 'calc(100vh - 5rem)', overflowY: 'auto' }}
+            className="sticky top-20 hidden shrink-0 xl:flex xl:flex-col scrollbar-hide overflow-hidden"
+            style={{ maxHeight: 'calc(100vh - 5rem)' }}
           >
-            {/* Collapse button — top-right of the panel */}
-            <div className="flex items-center justify-between pb-1">
+            {/* ── Sticky header row: "On this page" + collapse button ── */}
+            {/* sticky within the aside so it stays visible while the list scrolls */}
+            <div className="sticky top-0 z-10 flex items-center justify-between bg-background pb-1 pt-0 shrink-0">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 On this page
               </span>
@@ -103,27 +108,37 @@ export function ResizableToc({ headings }) {
               </button>
             </div>
 
-            <TableOfContents headings={headings} hideTitle />
+            {/* Scrollable TOC list */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+              <TableOfContents headings={headings} hideTitle />
+            </div>
           </motion.aside>
         )}
       </AnimatePresence>
 
-      {/* Collapsed tab — floats at the right edge to re-open */}
+      {/* Collapsed tab — fixed to viewport right edge so it's reachable at any scroll depth */}
       <AnimatePresence initial={false}>
         {collapsed && (
           <motion.div
             key="toc-tab"
-            initial={{ opacity: 0, x: 12 }}
+            initial={{ opacity: 0, x: 32 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 12 }}
+            exit={{ opacity: 0, x: 32 }}
             transition={{ duration: 0.18 }}
-            className="sticky top-24 hidden xl:flex shrink-0 flex-col items-center"
+            className="hidden xl:block"
+            style={{
+              position: 'fixed',
+              top: '50%',
+              right: 0,
+              transform: 'translateY(-50%)',
+              zIndex: 40,
+            }}
           >
             <button
               onClick={toggle}
               aria-label="Expand table of contents"
               title="Expand table of contents"
-              className="flex flex-col items-center gap-1.5 rounded-l-md border border-r-0 border-border/60 bg-card px-1.5 py-3 text-muted-foreground/60 shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+              className="flex flex-col items-center gap-1.5 rounded-l-md border border-r-0 border-border/60 bg-card px-1.5 py-3 text-muted-foreground/60 shadow-md transition-colors hover:bg-muted hover:text-foreground"
             >
               {/* chevron-left icon */}
               <svg

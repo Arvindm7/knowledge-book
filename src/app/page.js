@@ -38,26 +38,38 @@ async function getHomePageData() {
 
     // Get metadata for pages if available
     let recentPages = [];
-    let totalWords = 0;
+    let totalReadingMinutes = 0;
 
     if (hasLocalContent()) {
       const metadata = getLocalMetadata();
       const metaEntries = Object.values(metadata);
 
-      // Sort by lastUpdated for recent pages
-      recentPages = metaEntries
-        .filter((m) => m.lastUpdated)
-        .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated))
-        .slice(0, 5)
-        .map((m) => ({
-          slug: m.slug,
-          title: m.title,
-          description: m.description,
-          readingTimeMinutes: m.readingTimeMinutes,
-        }));
+      if (metaEntries.length > 0) {
+        // Sort by lastUpdated for recent pages
+        recentPages = metaEntries
+          .filter((m) => m.lastUpdated)
+          .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated))
+          .slice(0, 5)
+          .map((m) => ({
+            slug: m.slug,
+            title: m.title,
+            description: m.description,
+            readingTimeMinutes: m.readingTimeMinutes,
+          }));
 
-      // Estimate total words from reading time (avg 200 wpm)
-      totalWords = metaEntries.reduce((sum, m) => sum + (m.readingTimeMinutes || 0) * 200, 0);
+        // Total reading time in minutes
+        totalReadingMinutes = metaEntries.reduce((sum, m) => sum + (m.readingTimeMinutes || 0), 0);
+      }
+    }
+
+    // Fallback: derive recent pages from nav tree when metadata is unavailable
+    if (recentPages.length === 0 && allPages.length > 0) {
+      recentPages = allPages.slice(0, 5).map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        description: p.description || '',
+        readingTimeMinutes: null,
+      }));
     }
 
     // Get last sync timestamp from build info
@@ -67,31 +79,16 @@ async function getHomePageData() {
       lastSynced = buildInfo.generatedAt;
     }
 
-    // Count total unique topics (tags) if metadata available
-    let totalTopics = 0;
-    if (hasLocalContent()) {
-      const metadata = getLocalMetadata();
-      const tagSet = new Set();
-      for (const m of Object.values(metadata)) {
-        if (m.tags) {
-          for (const tag of m.tags) {
-            tagSet.add(tag);
-          }
-        }
-      }
-      totalTopics = tagSet.size || allPages.length;
-    } else {
-      totalTopics = allPages.length;
-    }
-
     return {
       categories,
       recentPages,
       stats: {
         totalPages: allPages.length,
         totalCategories: categories.length,
-        totalWords: totalWords || allPages.length * 800,
-        totalTopics,
+        totalReadingHours:
+          totalReadingMinutes > 0
+            ? Math.round(totalReadingMinutes / 60)
+            : Math.round((allPages.length * 5) / 60), // rough fallback: ~5 min/page
         lastSynced,
       },
     };
@@ -103,8 +100,8 @@ async function getHomePageData() {
       stats: {
         totalPages: 0,
         totalCategories: 0,
-        totalWords: 0,
-        totalTopics: 0,
+        totalReadingHours: 0,
+        lastSynced: null,
       },
     };
   }
