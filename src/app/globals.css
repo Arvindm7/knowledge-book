@@ -316,13 +316,110 @@ html {
 
 /*
  * ==========================================================================
- * Mermaid diagram container
+ * Mermaid diagram container — zoom / pan UI
  * ==========================================================================
  */
 
-.mermaid svg {
-  max-width: 100%;
-  height: auto;
+/* Outer card */
+.mermaid-wrapper {
+  overflow: hidden;
+}
+
+/* Toolbar strip */
+.mermaid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+  background: hsl(var(--muted) / 0.3);
+  user-select: none;
+}
+
+.mermaid-toolbar-hint {
+  font-size: 0.7rem;
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.01em;
+}
+
+.mermaid-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Icon buttons */
+.mermaid-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    opacity 0.15s;
+}
+
+.mermaid-btn:hover:not(:disabled) {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.mermaid-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Zoom % label button */
+.mermaid-zoom-label {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 3rem;
+  text-align: center;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.mermaid-zoom-label:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Pan/zoom canvas — fixed height with overflow hidden */
+.mermaid-canvas {
+  position: relative;
+  overflow: hidden;
+  height: 420px; /* reasonable default; enough for most diagrams */
+  cursor: grab;
+  background: hsl(var(--card));
+  padding: 1rem;
+}
+
+/* The inner div that gets CSS transform applied */
+.mermaid-viewport {
+  display: flex;
+  justify-content: center;
+  will-change: transform;
+  transition: transform 0s; /* instant — smooth is jarring for drag */
+}
+
+/* Make the SVG itself fill the viewport */
+.mermaid-viewport svg {
+  max-width: none !important;
+  display: block;
 }
 
 /*

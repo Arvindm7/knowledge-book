@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import mermaid from 'mermaid';
 import { useTheme } from 'next-themes';
 
 /**
- * Mermaid diagram renderer.
+ * Mermaid diagram renderer with zoom / pan controls.
  *
  * Client-side component that renders Mermaid diagram syntax into SVG.
- * Automatically adapts to the current light/dark theme.
+ * Automatically adapts to the current light/dark theme and provides
+ * zoom-in, zoom-out and reset buttons plus mouse-drag panning.
  *
  * Usage in Markdown:
  * ```mermaid
@@ -21,16 +22,95 @@ import { useTheme } from 'next-themes';
  * @param {string} props.chart - Mermaid diagram definition string.
  * @returns {React.ReactElement}
  */
+
 // Mermaid SVG text does not inherit font-size from CSS — must be set explicitly.
 const DIAGRAM_FONT_SIZE = 14;
+const ZOOM_STEP = 0.2;
+const ZOOM_MIN = 0.3;
+const ZOOM_MAX = 4;
 
 export function Mermaid({ chart }) {
   const containerRef = useRef(null);
+  const viewportRef = useRef(null);
   const reactId = useId();
   const mermaidId = `mermaid-${reactId.replace(/:/g, '')}`;
   const { resolvedTheme } = useTheme();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // zoom/pan state stored in refs to avoid re-renders on every mouse move
+  const zoomRef = useRef(1);
+  const panRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0 });
+  const [zoom, setZoom] = useState(1); // only for button label / aria
+
+  /* ── helpers ────────────────────────────────────────────────────────────── */
+
+  const applyTransform = useCallback(() => {
+    if (!viewportRef.current) return;
+    const { x, y } = panRef.current;
+    viewportRef.current.style.transform = `translate(${x}px, ${y}px) scale(${zoomRef.current})`;
+    viewportRef.current.style.transformOrigin = 'center top';
+  }, []);
+
+  const changeZoom = useCallback(
+    (delta) => {
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomRef.current + delta));
+      zoomRef.current = next;
+      setZoom(next);
+      applyTransform();
+    },
+    [applyTransform]
+  );
+
+  const resetView = useCallback(() => {
+    zoomRef.current = 1;
+    panRef.current = { x: 0, y: 0 };
+    setZoom(1);
+    applyTransform();
+  }, [applyTransform]);
+
+  /* ── drag-to-pan ────────────────────────────────────────────────────────── */
+
+  const onMouseDown = useCallback((e) => {
+    if (e.button !== 0) return;
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: panRef.current.x,
+      originY: panRef.current.y,
+    };
+    e.currentTarget.style.cursor = 'grabbing';
+  }, []);
+
+  const onMouseMove = useCallback(
+    (e) => {
+      if (!dragRef.current.active) return;
+      panRef.current = {
+        x: dragRef.current.originX + (e.clientX - dragRef.current.startX),
+        y: dragRef.current.originY + (e.clientY - dragRef.current.startY),
+      };
+      applyTransform();
+    },
+    [applyTransform]
+  );
+
+  const onMouseUp = useCallback((e) => {
+    dragRef.current.active = false;
+    if (e.currentTarget) e.currentTarget.style.cursor = 'grab';
+  }, []);
+
+  /* wheel to zoom */
+  const onWheel = useCallback(
+    (e) => {
+      e.preventDefault();
+      changeZoom(e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
+    },
+    [changeZoom]
+  );
+
+  /* ── mermaid render ─────────────────────────────────────────────────────── */
 
   useEffect(() => {
     if (!chart || !containerRef.current) return;
@@ -73,9 +153,18 @@ export function Mermaid({ chart }) {
           containerRef.current.innerHTML = styledSvg;
           const svgEl = containerRef.current.querySelector('svg');
           if (svgEl) {
-            svgEl.style.maxWidth = '100%';
+            svgEl.style.maxWidth = 'none';
+            svgEl.style.width = '100%';
             svgEl.style.height = 'auto';
+            svgEl.style.display = 'block';
           }
+
+          // Reset zoom/pan whenever chart or theme changes
+          zoomRef.current = 1;
+          panRef.current = { x: 0, y: 0 };
+          setZoom(1);
+          applyTransform();
+
           setIsLoading(false);
         }
       } catch (err) {
@@ -91,7 +180,9 @@ export function Mermaid({ chart }) {
     return () => {
       cancelled = true;
     };
-  }, [chart, mermaidId, resolvedTheme]);
+  }, [chart, mermaidId, resolvedTheme, applyTransform]);
+
+  const zoomPct = Math.round(zoom * 100);
 
   return (
     <figure className="mermaid-figure my-6 w-full">
@@ -142,13 +233,132 @@ export function Mermaid({ chart }) {
         </div>
       )}
 
-      {/* Diagram container */}
-      <div
-        ref={containerRef}
-        className="flex justify-center overflow-x-auto rounded-lg border border-border/60 bg-card p-4 [&_svg]:max-w-full"
-        aria-label="Mermaid diagram"
-        style={{ display: isLoading || error ? 'none' : undefined }}
-      />
+      {/* Diagram wrapper */}
+      {!error && (
+        <div
+          className="mermaid-wrapper rounded-lg border border-border/60 bg-card"
+          style={{ display: isLoading ? 'none' : undefined }}
+        >
+          {/* ── Toolbar ── */}
+          <div className="mermaid-toolbar">
+            <span className="mermaid-toolbar-hint">Scroll to zoom · drag to pan</span>
+            <div className="mermaid-toolbar-controls">
+              {/* Zoom out */}
+              <button
+                type="button"
+                onClick={() => changeZoom(-ZOOM_STEP)}
+                disabled={zoom <= ZOOM_MIN}
+                aria-label="Zoom out"
+                title="Zoom out"
+                className="mermaid-btn"
+                id={`${mermaidId}-zoom-out`}
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                  <path
+                    fillRule="evenodd"
+                    d="M6.25 9a.75.75 0 01.75-.75h4a.75.75 0 010 1.5H7A.75.75 0 016.25 9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {/* Zoom % readout / click to reset */}
+              <button
+                type="button"
+                onClick={resetView}
+                aria-label={`Current zoom ${zoomPct}%. Click to reset`}
+                title="Reset zoom & pan"
+                className="mermaid-zoom-label"
+                id={`${mermaidId}-zoom-reset`}
+              >
+                {zoomPct}%
+              </button>
+
+              {/* Zoom in */}
+              <button
+                type="button"
+                onClick={() => changeZoom(ZOOM_STEP)}
+                disabled={zoom >= ZOOM_MAX}
+                aria-label="Zoom in"
+                title="Zoom in"
+                className="mermaid-btn"
+                id={`${mermaidId}-zoom-in`}
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                  <path
+                    fillRule="evenodd"
+                    d="M9 6.25a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5H6.75a.75.75 0 010-1.5h1.5V7A.75.75 0 019 6.25z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {/* Reset */}
+              <button
+                type="button"
+                onClick={resetView}
+                aria-label="Reset view"
+                title="Reset zoom & pan"
+                className="mermaid-btn"
+                id={`${mermaidId}-reset`}
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.389zm1.26-3.853a.75.75 0 00.219-.53V2.799a.75.75 0 00-1.5 0v2.43l-.31-.31A7 7 0 003.27 8.158a.75.75 0 101.449.389A5.5 5.5 0 0113.052 4.05l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219l-.131-.07z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* ── Pan/Zoom canvas ── */}
+          <div
+            className="mermaid-canvas"
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onWheel={onWheel}
+            role="img"
+            aria-label="Mermaid diagram — drag to pan, scroll to zoom"
+          >
+            {/* Inner viewport that receives the CSS transform */}
+            <div ref={viewportRef} className="mermaid-viewport">
+              <div ref={containerRef} />
+            </div>
+          </div>
+        </div>
+      )}
     </figure>
   );
 }
