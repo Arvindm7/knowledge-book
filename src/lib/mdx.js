@@ -68,6 +68,83 @@ function rehypeMermaid() {
 }
 
 // ---------------------------------------------------------------------------
+// Custom Rehype Plugin: GitHub-style Alerts
+// ---------------------------------------------------------------------------
+
+const ALERT_LABEL_RE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i;
+
+/**
+ * rehypeAlerts — converts blockquotes that start with [!NOTE] / [!TIP] / etc.
+ * into <Callout type="note"> MDX JSX elements so our Callout component renders them.
+ *
+ * Operates on the HAST (HTML AST) after remark has finished, which means
+ * the detection is 100% reliable regardless of how React serialises children.
+ *
+ * Supported syntax (GitHub-flavored Markdown alerts):
+ *   > [!NOTE]
+ *   > Content here
+ *
+ *   > [!NOTE] Content inline
+ */
+function rehypeAlerts() {
+  return (tree) => {
+    visit(tree, 'element', (node, index, parent) => {
+      if (node.tagName !== 'blockquote') return;
+      if (index == null || !parent) return;
+
+      const bqChildren = node.children ?? [];
+
+      // Find first element child that is a <p>
+      const firstPIdx = bqChildren.findIndex((c) => c.type === 'element' && c.tagName === 'p');
+      if (firstPIdx === -1) return;
+
+      const firstP = bqChildren[firstPIdx];
+      const firstPChildren = firstP.children ?? [];
+
+      // The very first child of the <p> must be a text node starting with [!TYPE]
+      const firstText = firstPChildren[0];
+      if (!firstText || firstText.type !== 'text') return;
+
+      const match = firstText.value.match(ALERT_LABEL_RE);
+      if (!match) return;
+
+      const type = match[1].toLowerCase(); // 'note' | 'tip' | etc.
+      const afterLabel = firstText.value.slice(match[0].length);
+
+      // Rebuild the first paragraph without the [!TYPE] label
+      let newFirstPChildren;
+      if (afterLabel.length > 0) {
+        // Label was inline: > [!NOTE] Content → keep "Content" text node
+        newFirstPChildren = [{ ...firstText, value: afterLabel }, ...firstPChildren.slice(1)];
+      } else {
+        // Label was alone on its line: > [!NOTE] (rest of paragraph children follow)
+        newFirstPChildren = firstPChildren.slice(1);
+      }
+
+      // Rebuild the blockquote children list
+      let newBqChildren;
+      if (newFirstPChildren.length === 0) {
+        // First paragraph only contained the label — remove it entirely
+        newBqChildren = bqChildren.filter((_, i) => i !== firstPIdx);
+      } else {
+        newBqChildren = bqChildren.map((child, i) =>
+          i === firstPIdx ? { ...firstP, children: newFirstPChildren } : child
+        );
+      }
+
+      // Replace blockquote with <Callout type="..."> MDX JSX element
+      parent.children[index] = {
+        type: 'mdxJsxFlowElement',
+        name: 'Callout',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'type', value: type }],
+        children: newBqChildren,
+        data: { _mdxExplicitJsx: true },
+      };
+    });
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Plugin Configuration
 // ---------------------------------------------------------------------------
 
@@ -124,6 +201,7 @@ export function getRehypePlugins() {
     [rehypeAutolinkHeadings, autolinkHeadingsOptions], // Wrap headings in anchor links
     rehypeKatex, // Render math as KaTeX HTML
     rehypeMermaid, // Convert ```mermaid blocks → <Mermaid chart="..." /> BEFORE syntax highlighting
+    rehypeAlerts, // Convert > [!NOTE] blockquotes → <Callout type="note"> BEFORE syntax highlighting
     [rehypePrettyCode, prettyCodeOptions], // Shiki syntax highlighting (skips mermaid blocks)
   ];
 }
