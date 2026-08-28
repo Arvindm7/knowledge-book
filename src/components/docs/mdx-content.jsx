@@ -1,6 +1,6 @@
 import { MDXRemote } from 'next-mdx-remote-client/rsc';
 import { getRemarkPlugins, getRehypePlugins } from '@/lib/mdx';
-import { getMdxComponents, Mermaid } from '@/components/mdx';
+import { getMdxComponents, Mermaid, Callout } from '@/components/mdx';
 
 /**
  * MDX Content Renderer.
@@ -18,6 +18,7 @@ import { getMdxComponents, Mermaid } from '@/components/mdx';
 export async function MdxContent({ source }) {
   const components = getMdxComponents({
     Mermaid,
+    Callout,
   });
 
   return (

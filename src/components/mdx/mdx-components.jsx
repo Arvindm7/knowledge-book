@@ -1,7 +1,9 @@
+import React from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ImageViewer } from '@/components/common/image-viewer';
 import { CodeBlock } from './code-block';
+import { Callout } from './callout';
 
 /**
  * Custom MDX component overrides.
@@ -10,6 +12,71 @@ import { CodeBlock } from './code-block';
  * styled React components. Designed for Stripe/Vercel-level
  * typography and readability.
  */
+
+const ALERT_REGEX = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\](?:\r?\n|[ \t]+|$)([\s\S]*)$/i;
+
+function Blockquote({ className, children, ...props }) {
+  const childrenArray = React.Children.toArray(children);
+  if (childrenArray.length > 0) {
+    const firstChild = childrenArray[0];
+
+    // Check if the first child is a paragraph starting with [!NOTE], [!TIP], etc.
+    if (React.isValidElement(firstChild)) {
+      const pChildren = React.Children.toArray(firstChild.props.children);
+      if (pChildren.length > 0 && typeof pChildren[0] === 'string') {
+        const match = pChildren[0].match(ALERT_REGEX);
+        if (match) {
+          const type = match[1].toLowerCase();
+          const remainingText = match[2];
+
+          let newPChildren;
+          const trimmedRemaining = remainingText.replace(/^[\r\n\s]+/, '');
+          if (trimmedRemaining.length > 0) {
+            newPChildren = [trimmedRemaining, ...pChildren.slice(1)];
+          } else {
+            newPChildren = pChildren.slice(1);
+          }
+
+          const newFirstChild =
+            newPChildren.length > 0 ? React.cloneElement(firstChild, {}, ...newPChildren) : null;
+
+          const calloutChildren = [newFirstChild, ...childrenArray.slice(1)].filter(Boolean);
+
+          return (
+            <Callout type={type} className={className}>
+              {calloutChildren}
+            </Callout>
+          );
+        }
+      }
+    } else if (typeof firstChild === 'string') {
+      const match = firstChild.match(ALERT_REGEX);
+      if (match) {
+        const type = match[1].toLowerCase();
+        const remainingText = match[2];
+        const calloutChildren = [remainingText, ...childrenArray.slice(1)].filter(Boolean);
+
+        return (
+          <Callout type={type} className={className}>
+            {calloutChildren}
+          </Callout>
+        );
+      }
+    }
+  }
+
+  return (
+    <blockquote
+      className={cn(
+        'my-6 border-l-[3px] border-primary/40 bg-muted/30 py-3 pl-5 pr-4 text-foreground/80 [&>p]:mt-0',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </blockquote>
+  );
+}
 
 function Heading({ level, className, children, id, ...props }) {
   const Tag = `h${level}`;
@@ -121,16 +188,11 @@ export function getMdxComponents(customComponents = {}) {
     ),
     li: ({ className, ...props }) => <li className={cn('leading-7 pl-1', className)} {...props} />,
 
-    // ---- Blockquote ----
-    blockquote: ({ className, ...props }) => (
-      <blockquote
-        className={cn(
-          'my-6 border-l-[3px] border-primary/40 bg-muted/30 py-3 pl-5 pr-4 text-foreground/80 [&>p]:mt-0',
-          className
-        )}
-        {...props}
-      />
-    ),
+    // ---- Blockquote (with GitHub-style alert support) ----
+    blockquote: Blockquote,
+
+    // ---- Callout / Alert ----
+    Callout,
 
     // ---- Horizontal rule ----
     hr: ({ ...props }) => <hr className="my-10 border-border/60" {...props} />,

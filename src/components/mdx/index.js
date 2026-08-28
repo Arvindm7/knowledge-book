@@ -4,3 +4,4 @@
 export { getMdxComponents } from './mdx-components';
 export { Mermaid } from './mermaid';
 export { CodeBlock } from './code-block';
+export { Callout } from './callout';
