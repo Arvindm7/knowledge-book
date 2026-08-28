@@ -8,32 +8,41 @@ import { useTheme } from 'next-themes';
  * Mermaid diagram renderer with zoom / pan controls.
  *
  * Client-side component that renders Mermaid diagram syntax into SVG.
- * Automatically adapts to the current light/dark theme and provides
- * zoom-in, zoom-out and reset buttons plus mouse-drag panning.
- *
- * Usage in Markdown:
- * ```mermaid
- * graph TD; A-->B;
- * ```
- *
- * Or as a JSX component: <Mermaid chart="graph TD; A-->B;" />
- *
- * @param {object} props
- * @param {string} props.chart - Mermaid diagram definition string.
- * @returns {React.ReactElement}
+ * Automatically adapts to current light/dark theme and provides
+ * zoom-in, zoom-out, and reset buttons plus mouse-drag panning.
  */
 
-// Mermaid SVG text does not inherit font-size from CSS — must be set explicitly.
 const DIAGRAM_FONT_SIZE = 14;
 const ZOOM_STEP = 0.15;
-const ZOOM_MIN = 0.1;
+const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 5;
 
+/**
+ * Computes a fit scale so the diagram is never clipped on load.
+ * Small diagrams stay at 1.0 (100%) and center nicely; large diagrams scale down to fit.
+ */
+function calculateFitScale(nw, nh, canvas) {
+  if (!canvas || nw <= 0 || nh <= 0) return 1;
+  const clientW = canvas.clientWidth || 600;
+  const clientH = canvas.clientHeight || 420;
+  const availableW = Math.max(clientW - 32, 200);
+  const availableH = Math.max(clientH - 32, 200);
+
+  // If diagram naturally fits inside canvas at 100%, keep it at 100% (do not stretch!)
+  if (nw <= availableW && nh <= availableH) {
+    return 1;
+  }
+
+  // Diagram is larger than canvas: scale down so it fits comfortably
+  const scaleW = availableW / nw;
+  const scaleH = availableH / nh;
+  const fit = Math.max(ZOOM_MIN, Math.min(1, Math.min(scaleW, scaleH)));
+  return Math.round(fit * 100) / 100;
+}
+
 export function Mermaid({ chart }) {
-  // containerRef: the div whose innerHTML is set to the rendered SVG (and panned via translate)
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  // natural SVG dimensions parsed from the viewBox — used for crisp attribute-based resize
   const naturalSizeRef = useRef({ w: 0, h: 0 });
   const reactId = useId();
   const mermaidId = `mermaid-${reactId.replace(/:/g, '')}`;
@@ -45,33 +54,41 @@ export function Mermaid({ chart }) {
   const zoomRef = useRef(1);
   const panRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0 });
-  const [zoom, setZoom] = useState(1); // only for button label / aria
+  const [zoom, setZoom] = useState(1);
 
   /* ── helpers ────────────────────────────────────────────────────────────── */
 
   /**
-   * Applies the current zoom and pan without CSS scale.
-   * Zoom is applied by resizing the SVG's width/height attributes directly so the
-   * browser re-renders the vector at full resolution — no blur at any zoom level.
+   * Applies the current zoom and pan.
+   * Zoom is applied by updating the SVG's width/height attributes and style directly,
+   * so the browser re-evaluates the vector graphic at native pixel resolution.
    * Pan is applied as a CSS translate on the container div.
    */
   const applyTransform = useCallback(() => {
     if (!containerRef.current) return;
-    // Pan: translate the container
     const { x, y } = panRef.current;
     containerRef.current.style.transform = `translate(${x}px, ${y}px)`;
-    // Zoom: resize SVG attributes → crisp vector rendering at every level
+
     const svgEl = containerRef.current.querySelector('svg');
     const { w, h } = naturalSizeRef.current;
     if (svgEl && w > 0 && h > 0) {
-      svgEl.setAttribute('width', String(Math.round(w * zoomRef.current)));
-      svgEl.setAttribute('height', String(Math.round(h * zoomRef.current)));
+      const targetW = Math.max(10, Math.round(w * zoomRef.current));
+      const targetH = Math.max(10, Math.round(h * zoomRef.current));
+      svgEl.setAttribute('width', String(targetW));
+      svgEl.setAttribute('height', String(targetH));
+      svgEl.style.width = `${targetW}px`;
+      svgEl.style.height = `${targetH}px`;
+      svgEl.style.maxWidth = 'none';
+      svgEl.style.maxHeight = 'none';
     }
   }, []);
 
   const changeZoom = useCallback(
     (delta) => {
-      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomRef.current + delta));
+      const next = Math.min(
+        ZOOM_MAX,
+        Math.max(ZOOM_MIN, Math.round((zoomRef.current + delta) * 100) / 100)
+      );
       zoomRef.current = next;
       setZoom(next);
       applyTransform();
@@ -79,20 +96,14 @@ export function Mermaid({ chart }) {
     [applyTransform]
   );
 
-  /** Resets to the initial fit-to-canvas scale and zeroes pan. */
+  /** Resets to the initial fit scale and zeroes pan. */
   const resetView = useCallback(() => {
     const canvas = canvasRef.current;
-    const { w } = naturalSizeRef.current;
-    if (canvas && w > 0) {
-      const available = canvas.clientWidth - 32; // minus padding
-      const fitScale = w > available ? available / w : 1;
-      zoomRef.current = fitScale;
-      setZoom(fitScale);
-    } else {
-      zoomRef.current = 1;
-      setZoom(1);
-    }
+    const { w, h } = naturalSizeRef.current;
+    const fitScale = calculateFitScale(w, h, canvas);
+    zoomRef.current = fitScale;
     panRef.current = { x: 0, y: 0 };
+    setZoom(fitScale);
     applyTransform();
   }, [applyTransform]);
 
@@ -127,8 +138,7 @@ export function Mermaid({ chart }) {
     if (e.currentTarget) e.currentTarget.style.cursor = 'grab';
   }, []);
 
-  /* Ctrl+scroll to zoom — uses a non-passive native listener so preventDefault works.
-   * Plain scroll (no Ctrl) is intentionally ignored so the page can still scroll. */
+  /* Ctrl+scroll / pinch-to-zoom — native listener so preventDefault works */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -155,7 +165,7 @@ export function Mermaid({ chart }) {
       fontFamily: 'inherit',
       fontSize: DIAGRAM_FONT_SIZE,
       flowchart: { htmlLabels: true, curve: 'basis', fontSize: DIAGRAM_FONT_SIZE },
-      sequence: { useMaxWidth: true, fontSize: DIAGRAM_FONT_SIZE },
+      sequence: { useMaxWidth: false, fontSize: DIAGRAM_FONT_SIZE },
       classDiagram: { fontSize: DIAGRAM_FONT_SIZE },
       er: { fontSize: DIAGRAM_FONT_SIZE },
     });
@@ -166,15 +176,15 @@ export function Mermaid({ chart }) {
 
     async function renderDiagram() {
       try {
-        // Ensure any stale SVG from a previous render is cleared before re-rendering
         if (containerRef.current) {
           containerRef.current.innerHTML = '';
         }
-        const { svg } = await mermaid.render(mermaidId, chart);
+
+        // Use unique render id to avoid DOM collisions
+        const renderId = `${mermaidId}-${Date.now()}`;
+        const { svg } = await mermaid.render(renderId, chart);
+
         if (!cancelled && containerRef.current) {
-          // Inject a <style> into the SVG to enforce font size.
-          // Mermaid v11 ignores the fontSize config for certain diagram types,
-          // so post-processing the SVG string is the only reliable approach.
           const fontStyle = `<style>
             text, .label, .nodeLabel, .edgeLabel, .cluster-label,
             .node text, .edgeTerminals text { font-size: ${DIAGRAM_FONT_SIZE}px !important; }
@@ -183,30 +193,39 @@ export function Mermaid({ chart }) {
 
           containerRef.current.innerHTML = styledSvg;
           const svgEl = containerRef.current.querySelector('svg');
+
           if (svgEl) {
-            // Parse the natural viewBox dimensions for attribute-based zoom
+            // Parse natural dimensions from viewBox or attributes
             const vb = svgEl
               .getAttribute('viewBox')
               ?.trim()
               .split(/[\s,]+/);
-            let nw = 0,
-              nh = 0;
-            if (vb?.length >= 4) {
+            let nw = 0;
+            let nh = 0;
+            if (vb && vb.length >= 4) {
               nw = parseFloat(vb[2]);
               nh = parseFloat(vb[3]);
             }
-            if (!nw) nw = parseFloat(svgEl.getAttribute('width') || '0') || 600;
-            if (!nh) nh = parseFloat(svgEl.getAttribute('height') || '0') || 400;
+            if (!nw || isNaN(nw)) {
+              nw = parseFloat(svgEl.getAttribute('width') || '0') || 500;
+            }
+            if (!nh || isNaN(nh)) {
+              nh = parseFloat(svgEl.getAttribute('height') || '0') || 300;
+            }
+
+            // Ensure viewBox exists for clean attribute-based vector scaling
+            if (!svgEl.getAttribute('viewBox')) {
+              svgEl.setAttribute('viewBox', `0 0 ${nw} ${nh}`);
+            }
+
             naturalSizeRef.current = { w: nw, h: nh };
 
-            // Compute initial fit scale — fill canvas width if diagram is wider, else 1:1
-            const canvas = canvasRef.current;
-            const available = canvas ? canvas.clientWidth - 32 : 600;
-            const fitScale = nw > available ? available / nw : 1;
-
-            // Clear any inline styles Mermaid may have set; sizing is now via attributes
+            // Clear any hardcoded inline styles from Mermaid
             svgEl.removeAttribute('style');
             svgEl.style.display = 'block';
+
+            // Calculate fit scale — fits large diagrams, keeps small diagrams at 100%
+            const fitScale = calculateFitScale(nw, nh, canvasRef.current);
 
             zoomRef.current = fitScale;
             panRef.current = { x: 0, y: 0 };
@@ -231,44 +250,15 @@ export function Mermaid({ chart }) {
     };
   }, [chart, mermaidId, resolvedTheme, applyTransform]);
 
-  const zoomPct = Math.round(zoom * 100);
+  const zoomPct = Math.max(1, Math.round(zoom * 100));
 
   return (
     <figure className="mermaid-figure my-6 w-full">
-      {/* Loading skeleton */}
-      {isLoading && !error && (
-        <div className="flex h-32 items-center justify-center rounded-lg border border-border/60 bg-muted/30">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <svg
-              className="h-4 w-4 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            Rendering diagram…
-          </div>
-        </div>
-      )}
-
       {/* Error state */}
       {error && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3">
           <p className="mb-1 text-sm font-medium text-destructive">Mermaid diagram error</p>
-          <pre className="overflow-x-auto text-xs text-destructive/80 whitespace-pre-wrap">
+          <pre className="overflow-x-auto text-xs whitespace-pre-wrap text-destructive/80">
             {error}
           </pre>
           <details className="mt-2">
@@ -282,12 +272,9 @@ export function Mermaid({ chart }) {
         </div>
       )}
 
-      {/* Diagram wrapper */}
+      {/* Diagram wrapper — always mounted so canvas clientWidth is accurate */}
       {!error && (
-        <div
-          className="mermaid-wrapper rounded-lg border border-border/60 bg-card"
-          style={{ display: isLoading ? 'none' : undefined }}
-        >
+        <div className="mermaid-wrapper rounded-lg border border-border/60 bg-card">
           {/* ── Toolbar ── */}
           <div className="mermaid-toolbar">
             <span className="mermaid-toolbar-hint">Ctrl+scroll to zoom · drag to pan</span>
@@ -401,7 +388,36 @@ export function Mermaid({ chart }) {
             role="img"
             aria-label="Mermaid diagram — Ctrl+scroll to zoom, drag to pan"
           >
-            {/* Container: panned via translate; SVG inside is zoomed via attribute resize */}
+            {/* Loading overlay inside canvas — preserves canvas geometry while rendering */}
+            {isLoading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/75 backdrop-blur-[2px]">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <svg
+                    className="h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  Rendering diagram…
+                </div>
+              </div>
+            )}
+
+            {/* Container: panned via translate; SVG inside is zoomed via crisp vector resize */}
             <div ref={containerRef} className="mermaid-container" />
           </div>
         </div>

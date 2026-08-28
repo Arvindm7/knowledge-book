@@ -1,10 +1,10 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { PageLayout } from '@/components/layout';
 import { siteConfig } from '@/config/site';
 
 export const metadata = {
   title: 'About',
-  description: `About ${siteConfig.name} â€” what it is, how it's built, and why it exists.`,
+  description: `About ${siteConfig.name} - what it is, how it's built, and why it exists.`,
 };
 
 const faqs = [
@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: 'Who is this for?',
-    a: 'Primarily for me â€” so I stop re-learning the same things twice. But the content is written to be useful for anyone going through similar material, especially developers who prefer concise, example-driven explanations over walls of theory.',
+    a: 'Primarily for me - so I stop re-learning the same things twice. But the content is written to be useful for anyone going through similar material, especially developers who prefer concise, example-driven explanations over walls of theory.',
   },
   {
     q: 'How is the content written?',
@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     q: 'How often is it updated?',
-    a: 'Whenever I learn something worth writing down â€” which is fairly often. A push to the knowledge-base repository triggers an automatic Vercel rebuild, so updates are live within about a minute of being committed.',
+    a: 'Whenever I learn something worth writing down - which is fairly often. A push to the knowledge-base repository triggers an automatic Vercel rebuild, so updates are live within about a minute of being committed.',
   },
   {
     q: 'Can I use this content?',
@@ -34,7 +34,7 @@ const faqs = [
   },
   {
     q: 'Is the source code available?',
-    a: 'Yes â€” the website code and the knowledge-base content are both on GitHub. Links are in the header and at the bottom of this page.',
+    a: 'Yes - the website code and the knowledge-base content are both on GitHub. Links are in the header and at the bottom of this page.',
   },
 ];
 
@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <PageLayout showSidebar={false}>
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24">
-        {/* â”€â”€ Personal intro â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* Personal intro */}
         <header className="mb-16 border-b border-border/40 pb-12">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">
             About this site
@@ -52,8 +52,8 @@ export default function AboutPage() {
           </h1>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground">
             I used to keep notes in Notion, bookmarks in Chrome, and half-written code comments
-            scattered across projects. None of it was findable when I needed it. So I built this â€”
-            a single, structured, searchable place for everything I&apos;ve learned and want to be
+            scattered across projects. None of it was findable when I needed it. So I built this - a
+            single, structured, searchable place for everything I&apos;ve learned and want to be
             able to look up again.
           </p>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
@@ -61,7 +61,7 @@ export default function AboutPage() {
           </p>
         </header>
 
-        {/* â”€â”€ FAQ accordion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* FAQ accordion */}
         <section aria-labelledby="faq-heading">
           <h2
             id="faq-heading"
@@ -75,7 +75,7 @@ export default function AboutPage() {
               <details key={i} className="about-faq-item group">
                 <summary className="about-faq-summary">
                   <span>{item.q}</span>
-                  {/* chevron icon â€” rotates when open via CSS */}
+                  {/* chevron rotates when open via CSS */}
                   <svg
                     className="about-faq-chevron"
                     viewBox="0 0 16 16"
@@ -97,13 +97,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* â”€â”€ Footer links â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* Footer links */}
         <footer className="mt-16 flex flex-wrap items-center gap-4 border-t border-border/40 pt-8">
           <Link
             href="/docs"
             className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Browse the docs â†’
+            Browse the docs &rarr;
           </Link>
           <a
             href={siteConfig.links.github}

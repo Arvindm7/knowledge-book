@@ -406,9 +406,9 @@ html {
   cursor: grab;
   background: hsl(var(--card));
   padding: 1rem;
-  /* Center the diagram horizontally; vertical starts from top */
+  /* Center the diagram horizontally and vertically */
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
