@@ -410,14 +410,22 @@ html {
 
 /* The inner div that gets CSS transform applied */
 .mermaid-viewport {
+  width: 100%;
   display: flex;
   justify-content: center;
   will-change: transform;
   transition: transform 0s; /* instant — smooth is jarring for drag */
 }
 
+/* Inner container — fills full width so SVG stretches at 1× zoom */
+.mermaid-container {
+  width: 100%;
+}
+
 /* Make the SVG itself fill the viewport */
 .mermaid-viewport svg {
+  width: 100% !important;
+  height: auto !important;
   max-width: none !important;
   display: block;
 }

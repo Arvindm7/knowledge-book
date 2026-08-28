@@ -32,6 +32,7 @@ const ZOOM_MAX = 4;
 export function Mermaid({ chart }) {
   const containerRef = useRef(null);
   const viewportRef = useRef(null);
+  const canvasRef = useRef(null);
   const reactId = useId();
   const mermaidId = `mermaid-${reactId.replace(/:/g, '')}`;
   const { resolvedTheme } = useTheme();
@@ -101,14 +102,19 @@ export function Mermaid({ chart }) {
     if (e.currentTarget) e.currentTarget.style.cursor = 'grab';
   }, []);
 
-  /* wheel to zoom */
-  const onWheel = useCallback(
-    (e) => {
+  /* Ctrl+scroll to zoom — uses a non-passive native listener so preventDefault works.
+   * Plain scroll (no Ctrl) is intentionally ignored so the page can still scroll. */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handleWheel = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return; // let page scroll normally
       e.preventDefault();
       changeZoom(e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
-    },
-    [changeZoom]
-  );
+    };
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleWheel);
+  }, [changeZoom]);
 
   /* ── mermaid render ─────────────────────────────────────────────────────── */
 
@@ -241,7 +247,7 @@ export function Mermaid({ chart }) {
         >
           {/* ── Toolbar ── */}
           <div className="mermaid-toolbar">
-            <span className="mermaid-toolbar-hint">Scroll to zoom · drag to pan</span>
+            <span className="mermaid-toolbar-hint">Ctrl+scroll to zoom · drag to pan</span>
             <div className="mermaid-toolbar-controls">
               {/* Zoom out */}
               <button
@@ -343,18 +349,18 @@ export function Mermaid({ chart }) {
 
           {/* ── Pan/Zoom canvas ── */}
           <div
+            ref={canvasRef}
             className="mermaid-canvas"
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseUp}
-            onWheel={onWheel}
             role="img"
-            aria-label="Mermaid diagram — drag to pan, scroll to zoom"
+            aria-label="Mermaid diagram — Ctrl+scroll to zoom, drag to pan"
           >
             {/* Inner viewport that receives the CSS transform */}
             <div ref={viewportRef} className="mermaid-viewport">
-              <div ref={containerRef} />
+              <div ref={containerRef} className="mermaid-container" />
             </div>
           </div>
         </div>
