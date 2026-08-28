@@ -25,14 +25,16 @@ import { useTheme } from 'next-themes';
 
 // Mermaid SVG text does not inherit font-size from CSS — must be set explicitly.
 const DIAGRAM_FONT_SIZE = 14;
-const ZOOM_STEP = 0.2;
-const ZOOM_MIN = 0.3;
-const ZOOM_MAX = 4;
+const ZOOM_STEP = 0.15;
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 5;
 
 export function Mermaid({ chart }) {
+  // containerRef: the div whose innerHTML is set to the rendered SVG (and panned via translate)
   const containerRef = useRef(null);
-  const viewportRef = useRef(null);
   const canvasRef = useRef(null);
+  // natural SVG dimensions parsed from the viewBox — used for crisp attribute-based resize
+  const naturalSizeRef = useRef({ w: 0, h: 0 });
   const reactId = useId();
   const mermaidId = `mermaid-${reactId.replace(/:/g, '')}`;
   const { resolvedTheme } = useTheme();
@@ -47,11 +49,24 @@ export function Mermaid({ chart }) {
 
   /* ── helpers ────────────────────────────────────────────────────────────── */
 
+  /**
+   * Applies the current zoom and pan without CSS scale.
+   * Zoom is applied by resizing the SVG's width/height attributes directly so the
+   * browser re-renders the vector at full resolution — no blur at any zoom level.
+   * Pan is applied as a CSS translate on the container div.
+   */
   const applyTransform = useCallback(() => {
-    if (!viewportRef.current) return;
+    if (!containerRef.current) return;
+    // Pan: translate the container
     const { x, y } = panRef.current;
-    viewportRef.current.style.transform = `translate(${x}px, ${y}px) scale(${zoomRef.current})`;
-    viewportRef.current.style.transformOrigin = 'center top';
+    containerRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    // Zoom: resize SVG attributes → crisp vector rendering at every level
+    const svgEl = containerRef.current.querySelector('svg');
+    const { w, h } = naturalSizeRef.current;
+    if (svgEl && w > 0 && h > 0) {
+      svgEl.setAttribute('width', String(Math.round(w * zoomRef.current)));
+      svgEl.setAttribute('height', String(Math.round(h * zoomRef.current)));
+    }
   }, []);
 
   const changeZoom = useCallback(
@@ -64,10 +79,20 @@ export function Mermaid({ chart }) {
     [applyTransform]
   );
 
+  /** Resets to the initial fit-to-canvas scale and zeroes pan. */
   const resetView = useCallback(() => {
-    zoomRef.current = 1;
+    const canvas = canvasRef.current;
+    const { w } = naturalSizeRef.current;
+    if (canvas && w > 0) {
+      const available = canvas.clientWidth - 32; // minus padding
+      const fitScale = w > available ? available / w : 1;
+      zoomRef.current = fitScale;
+      setZoom(fitScale);
+    } else {
+      zoomRef.current = 1;
+      setZoom(1);
+    }
     panRef.current = { x: 0, y: 0 };
-    setZoom(1);
     applyTransform();
   }, [applyTransform]);
 
@@ -159,17 +184,35 @@ export function Mermaid({ chart }) {
           containerRef.current.innerHTML = styledSvg;
           const svgEl = containerRef.current.querySelector('svg');
           if (svgEl) {
-            svgEl.style.maxWidth = 'none';
-            svgEl.style.width = '100%';
-            svgEl.style.height = 'auto';
-            svgEl.style.display = 'block';
-          }
+            // Parse the natural viewBox dimensions for attribute-based zoom
+            const vb = svgEl
+              .getAttribute('viewBox')
+              ?.trim()
+              .split(/[\s,]+/);
+            let nw = 0,
+              nh = 0;
+            if (vb?.length >= 4) {
+              nw = parseFloat(vb[2]);
+              nh = parseFloat(vb[3]);
+            }
+            if (!nw) nw = parseFloat(svgEl.getAttribute('width') || '0') || 600;
+            if (!nh) nh = parseFloat(svgEl.getAttribute('height') || '0') || 400;
+            naturalSizeRef.current = { w: nw, h: nh };
 
-          // Reset zoom/pan whenever chart or theme changes
-          zoomRef.current = 1;
-          panRef.current = { x: 0, y: 0 };
-          setZoom(1);
-          applyTransform();
+            // Compute initial fit scale — fill canvas width if diagram is wider, else 1:1
+            const canvas = canvasRef.current;
+            const available = canvas ? canvas.clientWidth - 32 : 600;
+            const fitScale = nw > available ? available / nw : 1;
+
+            // Clear any inline styles Mermaid may have set; sizing is now via attributes
+            svgEl.removeAttribute('style');
+            svgEl.style.display = 'block';
+
+            zoomRef.current = fitScale;
+            panRef.current = { x: 0, y: 0 };
+            setZoom(fitScale);
+            applyTransform();
+          }
 
           setIsLoading(false);
         }
@@ -358,10 +401,8 @@ export function Mermaid({ chart }) {
             role="img"
             aria-label="Mermaid diagram — Ctrl+scroll to zoom, drag to pan"
           >
-            {/* Inner viewport that receives the CSS transform */}
-            <div ref={viewportRef} className="mermaid-viewport">
-              <div ref={containerRef} className="mermaid-container" />
-            </div>
+            {/* Container: panned via translate; SVG inside is zoomed via attribute resize */}
+            <div ref={containerRef} className="mermaid-container" />
           </div>
         </div>
       )}

@@ -398,36 +398,102 @@ html {
   color: hsl(var(--accent-foreground));
 }
 
-/* Pan/zoom canvas — fixed height with overflow hidden */
+/* Pan/zoom canvas — fixed height, clips overflow, centers diagram */
 .mermaid-canvas {
   position: relative;
   overflow: hidden;
-  height: 420px; /* reasonable default; enough for most diagrams */
+  height: 420px;
   cursor: grab;
   background: hsl(var(--card));
   padding: 1rem;
-}
-
-/* The inner div that gets CSS transform applied */
-.mermaid-viewport {
-  width: 100%;
+  /* Center the diagram horizontally; vertical starts from top */
   display: flex;
+  align-items: flex-start;
   justify-content: center;
-  will-change: transform;
-  transition: transform 0s; /* instant — smooth is jarring for drag */
 }
 
-/* Inner container — fills full width so SVG stretches at 1× zoom */
+/**
+ * The container div receives CSS translate for panning.
+ * It uses inline-flex so it shrinks to its SVG content width
+ * rather than stretching to 100% (which caused the "full-width" spread).
+ * The SVG inside is resized via width/height attributes for crisp zoom.
+ */
 .mermaid-container {
-  width: 100%;
+  display: inline-flex;
+  flex-shrink: 0;
 }
 
-/* Make the SVG itself fill the viewport */
-.mermaid-viewport svg {
-  width: 100% !important;
-  height: auto !important;
-  max-width: none !important;
+.mermaid-container svg {
   display: block;
+  /* Never let Mermaid's own max-width constraint override attribute sizing */
+  max-width: none !important;
+}
+
+/*
+ * ==========================================================================
+ * About page — FAQ accordion (native <details>/<summary>)
+ * ==========================================================================
+ */
+
+.about-faq-list {
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.about-faq-item {
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.about-faq-item:last-child {
+  border-bottom: none;
+}
+
+.about-faq-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.about-faq-summary::-webkit-details-marker {
+  display: none;
+}
+
+.about-faq-summary:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.about-faq-chevron {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
+  transition: transform 0.2s ease;
+}
+
+.about-faq-item[open] .about-faq-chevron {
+  transform: rotate(180deg);
+}
+
+.about-faq-item[open] > .about-faq-summary {
+  background: hsl(var(--muted) / 0.3);
+  color: hsl(var(--primary));
+}
+
+.about-faq-answer {
+  padding: 0 1.25rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: hsl(var(--muted-foreground));
+  border-top: 1px solid hsl(var(--border) / 0.4);
+  padding-top: 0.875rem;
 }
 
 /*
